@@ -150,7 +150,7 @@ complaintSchema.pre("save", async function (next) {
         this.sla.deadline = deadline;
     }
 
-    next();
+   
 });
 
 // Method to check and update SLA status

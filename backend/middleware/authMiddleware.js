@@ -1,13 +1,5 @@
 import jwt from "jsonwebtoken";
 
-/**
- * Auth middleware for complaint tracking.
- * Currently uses manually provided tokens.
- * In the future, this will integrate with the User Management System.
- *
- * Token payload should contain:
- * { userId, name, email, role, roomNumber, hostelBlock }
- */
 export const protect = (req, res, next) => {
     let token;
 
@@ -37,7 +29,6 @@ export const protect = (req, res, next) => {
     }
 };
 
-// Restrict to specific roles
 export const authorize = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
@@ -51,12 +42,27 @@ export const authorize = (...roles) => {
 };
 
 /**
- * Utility: Generate a manual test token
+ * Utility: Generate a manual test token (No DB — kept for backward compat)
  * Usage: POST /api/auth/generate-test-token
- * NOTE: Remove this in production / when user management is integrated
+ * NOTE: Remove in production
  */
 export const generateTestToken = (req, res) => {
+    // Guard: body must be parsed
+    if (!req.body || typeof req.body !== "object") {
+        return res.status(400).json({
+            success: false,
+            message: "Request body missing. Set Content-Type: application/json.",
+        });
+    }
+
     const { userId, name, email, role, roomNumber, hostelBlock } = req.body;
+
+    if (!userId || !name || !email || !role) {
+        return res.status(400).json({
+            success: false,
+            message: "userId, name, email, and role are required.",
+        });
+    }
 
     const allowedRoles = ["student", "staff", "admin"];
     if (!allowedRoles.includes(role)) {
@@ -66,24 +72,17 @@ export const generateTestToken = (req, res) => {
         });
     }
 
-    if (!userId || !name || !email || !role) {
-        return res.status(400).json({
-            success: false,
-            message: "userId, name, email, and role are required.",
-        });
-    }
-
     const token = jwt.sign(
         { userId, name, email, role, roomNumber, hostelBlock },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRE || "7d" }
     );
 
-    res.json({
+    return res.json({
         success: true,
-        message: "Test token generated. Replace with User Management token in production.",
+        message: "Test token generated.",
         token,
         user: { userId, name, email, role, roomNumber, hostelBlock },
-        note: "This endpoint is for development/testing only. Will be removed when User Management System is integrated.",
+        note: "Development only. Will be removed when User Management System is integrated.",
     });
 };

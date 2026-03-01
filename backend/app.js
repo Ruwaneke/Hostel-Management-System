@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import complaintRoutes from './routes/complaintRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 
@@ -17,8 +18,8 @@ const AllowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(helmet());
 app.use(cors({ origin: AllowedOrigins, credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
@@ -31,9 +32,14 @@ app.get('/health', (req, res) => {
 });
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-// NOTE: /api/auth is for development token generation only.
-// Will be replaced by User Management System integration.
+// Dev token generator (kept for backward compatibility)
 app.use('/api/auth', authRoutes);
+
+// Simple User Management (testing only)
+// TODO: Replace with User Management System integration
+app.use('/api/users', userRoutes);
+
+// Complaint/Maintenance routes
 app.use('/api/complaints', complaintRoutes);
 
 // ── Error Handling ────────────────────────────────────────────────────────────
