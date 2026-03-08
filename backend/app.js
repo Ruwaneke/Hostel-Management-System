@@ -5,6 +5,12 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
+import authRoutes from './routes/authRoutes.js';
+import roomRoutes from './routes/roomRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import laundryRoutes from './routes/laundryRoutes.js';
+import complaintRoutes from './routes/complaintRoutes.js';
+import mealRoutes from './routes/mealRoutes.js';
 
 const app = express();
 
@@ -24,9 +30,13 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Add your routes here 
-
-
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/laundry', laundryRoutes);
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/meals', mealRoutes);
 
 // Error handling middleware
 app.use(notFound);
