@@ -4,6 +4,7 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import paymentRoutes from "./routes/payment.route.js";
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 const app = express();
@@ -14,6 +15,7 @@ const AllowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(cors({ origin: AllowedOrigins, credentials:true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended:true}));
+app.use("/api/payment", paymentRoutes);
 
 app.get('/health', (req, res) => {
     res.json({
@@ -25,7 +27,7 @@ app.get('/health', (req, res) => {
 });
 
 // Add your routes here 
-
+app.use("/api/payments", paymentRoutes);
 
 
 // Error handling middleware
