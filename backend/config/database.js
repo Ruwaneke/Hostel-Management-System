@@ -2,15 +2,20 @@ import mongoose from "mongoose";
 
 export const connectDB = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI);
+        await mongoose.connect(process.env.MONGODB_URI, {
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+            family: 4,
+        });
 
-        // Logs the database name for clarity
         const dbName = mongoose.connection.name;
         console.log('MongoDB connected Successfully');
         console.log(`Database: ${dbName}`);
     } catch (error) {
-        console.error('MongoDB Connection Error:', error);
-        process.exit(1);
+        console.error('MongoDB Connection Error:', error.message);
+        console.error('Hint: Your Atlas cluster may be paused. Resume it at cloud.mongodb.com');
+        // Don't exit — let the server start so you can diagnose via API
+        // Routes will return 503 until DB reconnects
     }
 };
 

@@ -6,9 +6,12 @@ import cors from 'cors';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
-import complaintRoutes from './routes/complaintRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import userRoutes from './routes/userRoutes.js';
+import roomRoutes from './routes/roomRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
+import laundryRoutes from './routes/laundryRoutes.js';
+import complaintRoutes from './routes/complaintRoutes.js';
+import mealRoutes from './routes/mealRoutes.js';
 
 const app = express();
 
@@ -31,16 +34,13 @@ app.get('/health', (req, res) => {
     });
 });
 
-// ── Routes ────────────────────────────────────────────────────────────────────
-// Dev token generator (kept for backward compatibility)
+// Routes
 app.use('/api/auth', authRoutes);
-
-// Simple User Management (testing only)
-// TODO: Replace with User Management System integration
-app.use('/api/users', userRoutes);
-
-// Complaint/Maintenance routes
+app.use('/api/rooms', roomRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/laundry', laundryRoutes);
 app.use('/api/complaints', complaintRoutes);
+app.use('/api/meals', mealRoutes);
 
 // ── Error Handling ────────────────────────────────────────────────────────────
 app.use(notFound);

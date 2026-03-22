@@ -1,16 +1,9 @@
-import express from "express";
-import { generateTestToken } from "../middleware/authMiddleware.js";
+import express from 'express';
+import { register, login } from '../controllers/authController.js';
 
 const router = express.Router();
 
-/**
- * POST /api/auth/generate-test-token
- * Manually generate a JWT for testing until
- * User Management System is integrated.
- *
- * Body: { userId, name, email, role, roomNumber, hostelBlock }
- * Roles: student | staff | admin
- */
-router.post("/generate-test-token", generateTestToken);
+router.post('/register', register);
+router.post('/login', login);
 
 export default router;
