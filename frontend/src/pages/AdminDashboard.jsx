@@ -1,6 +1,8 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import AdminComplaints from "./AdminComplaints";
+import AdminFeedback from "./AdminFeedback";
 
 const menuItems = [
   { id: "dashboard",  label: "Dashboard",  icon: "" },
@@ -10,20 +12,21 @@ const menuItems = [
   { id: "laundry",    label: "Laundry",    icon: "" },
   { id: "complaints", label: "Complaints", icon: "" },
   { id: "meals",      label: "Meals",      icon: "" },
+  { id: "feedback",   label: "Feedback",   icon: "" },
 ];
 
 const stats = [
-  { label: "Total Rooms",    value: 48,  icon: "", color: "indigo" },
-  { label: "Occupied",       value: 35,  icon: "",  color: "green"  },
-  { label: "Total Students", value: 127, icon: "",  color: "cyan"   },
-  { label: "Open Tickets",   value: 8,   icon: "",  color: "red"    },
+  { label: "Total Rooms",    value: 48,  icon: "🛏️", color: "navy" },
+  { label: "Occupied",       value: 35,  icon: "👥",  color: "emerald"  },
+  { label: "Total Students", value: 127, icon: "🎓",  color: "sky"   },
+  { label: "Open Tickets",   value: 8,   icon: "🔧",  color: "rose"    },
 ];
 
 const colorCls = {
-  indigo: { border: "border-l-indigo-500", text: "text-indigo-600", bg: "bg-indigo-50" },
-  green:  { border: "border-l-green-500",  text: "text-green-600",  bg: "bg-green-50"  },
-  cyan:   { border: "border-l-cyan-500",   text: "text-cyan-600",   bg: "bg-cyan-50"   },
-  red:    { border: "border-l-red-500",    text: "text-red-600",    bg: "bg-red-50"    },
+  navy:    { border: "border-brand-navy",  text: "text-brand-navy",  bg: "bg-brand-navy/5" },
+  emerald: { border: "border-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50"  },
+  sky:     { border: "border-sky-500",     text: "text-sky-700",     bg: "bg-sky-50"   },
+  rose:    { border: "border-rose-500",    text: "text-rose-700",    bg: "bg-rose-50"    },
 };
 
 const statusColor = {
@@ -96,30 +99,31 @@ export default function AdminDashboard() {
     switch (active) {
       case "dashboard":
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div>
-              <h2 className="text-xl font-bold text-slate-800">Dashboard Overview</h2>
-              <p className="text-slate-400 text-sm mt-1">Welcome back, {user?.name}!</p>
+              <h2 className="text-2xl font-black text-brand-navy tracking-tight">Dashboard Overview ✨</h2>
+              <p className="text-slate-500 font-medium text-sm mt-1">Welcome back, {user?.name}!</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map(s => {
                 const c = colorCls[s.color];
                 return (
-                  <div key={s.label} className={"bg-white rounded-2xl shadow-sm border-l-4 p-5 " + c.border}>
-                    <div className={"text-2xl w-10 h-10 rounded-xl flex items-center justify-center mb-3 " + c.bg}>{s.icon}</div>
-                    <div className={"text-2xl font-extrabold " + c.text}>{s.value}</div>
-                    <div className="text-slate-500 text-xs mt-1 font-medium">{s.label}</div>
+                  <div key={s.label} className={"bg-brand-white rounded-3xl shadow-sm border-l-4 p-5 hover:shadow-md transition-shadow " + c.border}>
+                    <div className={"w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 " + c.bg}>{s.icon}</div>
+                    <div className={"text-3xl font-black " + c.text}>{s.value}</div>
+                    <div className="text-slate-500 text-sm mt-1 font-semibold">{s.label}</div>
                   </div>
                 );
               })}
             </div>
-            <div className="bg-gradient-to-r from-indigo-600 to-blue-500 rounded-2xl p-6 text-white">
-              <h3 className="font-bold text-lg mb-2">Today at a Glance</h3>
-              <div className="grid grid-cols-3 gap-4 text-center mt-4">
+            <div className="bg-brand-navy rounded-3xl p-8 text-brand-platinum shadow-lg border border-brand-white/10 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-gold/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl pointer-events-none" />
+              <h3 className="font-extrabold text-brand-gold text-xl mb-6 relative z-10">Today at a Glance</h3>
+              <div className="grid grid-cols-3 gap-6 text-center mt-4 relative z-10">
                 {[["8","Open Tickets"],["3","Pending Payments"],["2","Laundry Ready"]].map(([v, l]) => (
-                  <div key={l} className="bg-white/20 rounded-xl p-3">
-                    <div className="text-2xl font-extrabold">{v}</div>
-                    <div className="text-xs text-indigo-100 mt-1">{l}</div>
+                  <div key={l} className="bg-brand-white/5 border border-brand-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                    <div className="text-3xl font-black text-brand-white">{v}</div>
+                    <div className="text-sm font-semibold text-brand-platinum/70 uppercase tracking-wider mt-2">{l}</div>
                   </div>
                 ))}
               </div>
@@ -211,19 +215,18 @@ export default function AdminDashboard() {
 
       case "complaints":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Complaints & Maintenance</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Student</TH><TH>Issue</TH><TH>Date</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {complaintsData.map((c, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD>{c.student}</TD><TD>{c.issue}</TD><TD>{c.date}</TD><TD><Badge s={c.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
+              <AdminComplaints isEmbedded={true} />
+            </div>
+          </div>
+        );
+
+      case "feedback":
+        return (
+          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
+              <AdminFeedback isEmbedded={true} />
             </div>
           </div>
         );
@@ -253,65 +256,64 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-brand-platinum/20 overflow-hidden text-brand-black">
       {/* Sidebar */}
-      <aside className={"flex flex-col bg-indigo-900 text-white transition-all duration-300 " + (collapsed ? "w-16" : "w-56")}>
-        <div className="flex items-center gap-3 px-4 py-5 border-b border-indigo-800">
-          <span className="text-2xl flex-shrink-0"></span>
-          {!collapsed && <span className="font-extrabold text-lg">HostelMS</span>}
+      <aside className={"flex flex-col bg-brand-navy text-brand-platinum border-r border-brand-white/10 transition-all duration-300 relative z-20 shadow-2xl " + (collapsed ? "w-20" : "w-64")}>
+        <div className="flex items-center gap-3 px-6 py-6 border-b border-brand-white/10">
+          <span className="text-3xl flex-shrink-0 drop-shadow-sm">🏠</span>
+          {!collapsed && <span className="font-black text-xl text-brand-gold tracking-tight">HostelMS</span>}
         </div>
-        <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+        <nav className="flex-1 py-6 space-y-2 px-3 overflow-y-auto custom-scrollbar">
           {menuItems.map(item => (
             <button
               key={item.id}
               onClick={() => setActive(item.id)}
               title={collapsed ? item.label : ""}
-              className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all " +
+              className={"w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all " +
                 (active === item.id
-                  ? "bg-white text-indigo-800 shadow"
-                  : "text-indigo-200 hover:bg-indigo-800 hover:text-white")}
+                  ? "bg-brand-gold text-brand-black shadow-lg shadow-brand-gold/20"
+                  : "text-brand-platinum/80 hover:bg-brand-white/5 hover:text-brand-gold")}
             >
-              <span className="text-base flex-shrink-0">{item.icon}</span>
+              <span className={"text-xl flex-shrink-0 " + (active !== item.id && "opacity-70")}>{"→"}</span>
               {!collapsed && <span>{item.label}</span>}
             </button>
           ))}
         </nav>
-        <div className="px-2 pb-4">
+        <div className="px-3 pb-6 border-t border-brand-white/10 pt-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-300 hover:bg-red-900/40 hover:text-red-200 transition-all"
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all"
           >
-            <span className="flex-shrink-0"></span>
+            <span className="flex-shrink-0 text-xl opacity-80">🚪</span>
             {!collapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-brand-platinum/10">
         {/* Topbar */}
-        <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-4">
+        <header className="bg-brand-white border-b border-brand-platinum/50 px-8 py-4 flex items-center justify-between flex-shrink-0 relative z-10 shadow-sm">
+          <div className="flex items-center gap-5">
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition"
+              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-brand-platinum/30 text-brand-navy transition-colors"
             >
-              
+              <span className="text-xl">☰</span>
             </button>
             <div>
-              <h1 className="font-bold text-slate-800 text-sm">
-                {menuItems.find(m => m.id === active)?.icon}{" "}
+              <h1 className="font-extrabold text-brand-navy text-xl tracking-tight flex items-center gap-2">
                 {menuItems.find(m => m.id === active)?.label}
               </h1>
-              <p className="text-slate-400 text-xs">Admin Panel</p>
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mt-0.5">Admin Panel</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-700">{user?.name}</p>
-              <p className="text-xs text-slate-400">Administrator</p>
+              <p className="text-sm font-black text-brand-navy">{user?.name}</p>
+              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider">Administrator</p>
             </div>
-            <div className="w-9 h-9 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+            <div className="w-11 h-11 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-bold text-lg shadow-inner ring-2 ring-brand-platinum/50">
               {user?.name?.charAt(0).toUpperCase()}
             </div>
           </div>

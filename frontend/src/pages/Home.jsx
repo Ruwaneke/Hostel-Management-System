@@ -39,25 +39,27 @@ export default function Home() {
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-500 text-white">
-        <div className="max-w-7xl mx-auto px-6 py-24 flex flex-col lg:flex-row items-center gap-12">
+      <section className="bg-brand-navy text-brand-platinum relative overflow-hidden border-b border-brand-white/5">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-gold/5 rounded-full translate-x-1/3 -translate-y-1/4 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-platinum/5 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 py-28 flex flex-col lg:flex-row items-center gap-12 relative z-10">
           {/* Text */}
           <div className="flex-1 text-center lg:text-left">
-            <span className="inline-block bg-white/20 backdrop-blur text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
-              🏠 Modern Hostel Management
+            <span className="inline-block bg-brand-white/10 backdrop-blur-md border border-brand-white/10 text-brand-gold text-sm font-bold px-5 py-2 rounded-full mb-8 shadow-lg">
+              ✨ Modern Hostel Management
             </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight mb-8 text-brand-white tracking-tight">
               Smart Hostel<br />
-              <span className="text-yellow-300">All in One Platform</span>
+              <span className="text-brand-gold drop-shadow-sm">All in One Platform</span>
             </h1>
-            <p className="text-indigo-100 text-lg mb-8 max-w-xl mx-auto lg:mx-0">
-              Streamline room allocation, payments, laundry, complaints, and meals — all from a single easy-to-use dashboard.
+            <p className="text-brand-platinum/80 text-lg lg:text-xl mb-10 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed">
+              Streamline room allocation, payments, laundry, complaints, and meals — all from a beautifully crafted dashboard.
             </p>
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-              <Link to="/register" className="bg-yellow-400 hover:bg-yellow-300 text-indigo-900 font-bold px-8 py-3 rounded-xl transition shadow-lg">
+              <Link to="/register" className="bg-brand-gold hover:bg-[#e5920f] text-brand-black font-extrabold px-8 py-3.5 rounded-xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
                 Get Started Free
               </Link>
-              <Link to="/login" className="bg-white/20 hover:bg-white/30 text-white font-semibold px-8 py-3 rounded-xl border border-white/30 transition">
+              <Link to="/login" className="bg-brand-white/5 hover:bg-brand-white/10 text-brand-white font-bold px-8 py-3.5 rounded-xl border border-brand-white/20 transition-all backdrop-blur-sm shadow-lg">
                 Sign In →
               </Link>
             </div>
@@ -80,12 +82,12 @@ export default function Home() {
       </section>
 
       {/* ── STATS ─────────────────────────────────────────── */}
-      <section className="bg-indigo-600 text-white">
-        <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+      <section className="bg-brand-black text-brand-white border-b border-brand-white/5 relative z-20">
+        <div className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
           {stats.map((s) => (
-            <div key={s.label}>
-              <div className="text-3xl font-extrabold text-yellow-300">{s.value}</div>
-              <div className="text-indigo-200 text-sm mt-1">{s.label}</div>
+            <div key={s.label} className="flex flex-col items-center">
+              <div className="text-4xl font-black text-brand-gold mb-2">{s.value}</div>
+              <div className="text-brand-platinum/70 text-sm font-bold uppercase tracking-wider">{s.label}</div>
             </div>
           ))}
         </div>
@@ -118,20 +120,23 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────── */}
-      <section className="bg-indigo-50 py-20">
+      <section className="bg-brand-platinum/20 py-24 border-y border-brand-platinum/50">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-slate-800 mb-3">How It Works</h2>
-            <p className="text-slate-500">Get up and running in 3 simple steps.</p>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-black text-brand-navy mb-4 tracking-tight">How It Works</h2>
+            <p className="text-slate-500 font-medium text-lg">Get up and running in 3 simple steps.</p>
           </div>
-          <div className="grid sm:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-3 gap-8 relative">
+            {/* Connecting Line */}
+            <div className="hidden sm:block absolute top-1/2 left-10 right-10 h-0.5 bg-brand-platinum -z-10 -translate-y-[45px]"></div>
+            
             {steps.map((s) => (
-              <div key={s.step} className="bg-white rounded-2xl p-8 shadow-sm text-center">
-                <div className="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center font-extrabold text-lg mx-auto mb-4">
+              <div key={s.step} className="bg-brand-white rounded-3xl p-8 shadow-xl text-center border border-brand-platinum/30 relative z-10 transition-transform hover:-translate-y-1">
+                <div className="w-16 h-16 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-black text-2xl mx-auto mb-6 shadow-lg ring-4 ring-brand-white">
                   {s.step}
                 </div>
-                <h3 className="font-bold text-slate-800 text-lg mb-2">{s.title}</h3>
-                <p className="text-slate-500 text-sm">{s.desc}</p>
+                <h3 className="font-bold text-brand-navy text-xl mb-3">{s.title}</h3>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -139,22 +144,25 @@ export default function Home() {
       </section>
 
       {/* ── TESTIMONIAL ───────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-6 py-20 text-center">
-        <h2 className="text-3xl font-extrabold text-slate-800 mb-10">What Students Say</h2>
-        <div className="grid sm:grid-cols-2 gap-6">
+      <section className="max-w-5xl mx-auto px-6 py-24 text-center">
+        <h2 className="text-3xl sm:text-4xl font-black text-brand-navy mb-14 tracking-tight">What Our Users Say</h2>
+        <div className="grid sm:grid-cols-2 gap-8">
           {[
-            { name: 'Ahmed R.', role: 'Student', text: 'HostelMS made paying my fees and tracking laundry so much easier. Love the clean interface!' },
-            { name: 'Sara K.', role: 'Admin', text: 'Managing 120 rooms used to be a nightmare. Now everything is just one click away. Incredible tool.' },
+            { name: 'Ahmed R.', role: 'Student', text: 'HostelMS made paying my fees and tracking laundry so much easier. Love the premium interface, it feels incredibly modern.' },
+            { name: 'Sara K.', role: 'Admin', text: 'Managing 120 rooms used to be a nightmare. Now everything is just one click away. Absolutely incredible tool.' },
           ].map((t) => (
-            <div key={t.name} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm text-left">
-              <p className="text-slate-600 italic mb-4">"{t.text}"</p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">
+            <div key={t.name} className="bg-brand-white border border-brand-platinum/50 rounded-3xl p-8 shadow-lg text-left relative">
+              <div className="absolute top-8 right-8 text-6xl text-brand-platinum/40 font-serif leading-none">"</div>
+              <p className="text-slate-600 font-medium italic mb-8 relative z-10 leading-relaxed text-lg text-pretty">
+                {t.text}
+              </p>
+              <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-bold text-xl shadow-md">
                   {t.name[0]}
                 </div>
                 <div>
-                  <div className="font-semibold text-slate-800">{t.name}</div>
-                  <div className="text-xs text-slate-400">{t.role}</div>
+                  <div className="font-extrabold text-brand-navy">{t.name}</div>
+                  <div className="text-sm font-semibold text-brand-gold uppercase tracking-wider">{t.role}</div>
                 </div>
               </div>
             </div>
@@ -163,34 +171,37 @@ export default function Home() {
       </section>
 
       {/* ── CTA ───────────────────────────────────────────── */}
-      <section className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white py-20">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Ready to Get Started?</h2>
-          <p className="text-indigo-200 text-lg mb-8">Join hundreds of students and admins already using HostelMS.</p>
+      <section className="bg-brand-navy text-brand-white py-24 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 w-full h-full bg-brand-gold/5 -translate-x-1/2 blur-3xl pointer-events-none rounded-[100%]" />
+        <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
+          <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">Ready to Upgrade?</h2>
+          <p className="text-brand-platinum text-lg md:text-xl font-medium mb-10 text-balance opacity-90">
+            Join hundreds of visionary students and admins revolutionizing campus living with HostelMS.
+          </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/register" className="bg-yellow-400 hover:bg-yellow-300 text-indigo-900 font-bold px-8 py-3 rounded-xl transition shadow-lg">
-              Create Account
+            <Link to="/register" className="bg-brand-gold hover:bg-[#e5920f] text-brand-black font-extrabold px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1">
+              Create Free Account
             </Link>
-            <Link to="/contact" className="bg-white/20 hover:bg-white/30 text-white font-semibold px-8 py-3 rounded-xl border border-white/30 transition">
-              Contact Us
+            <Link to="/contact" className="bg-brand-white/5 hover:bg-brand-white/10 text-brand-white font-bold px-8 py-4 rounded-xl border border-brand-white/20 transition-all backdrop-blur-sm">
+              Contact Sales
             </Link>
           </div>
         </div>
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────── */}
-      <footer className="bg-slate-800 text-slate-400 py-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-white font-bold text-lg">
+      <footer className="bg-brand-black text-brand-platinum py-12 border-t border-brand-white/10">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2 text-brand-gold font-black text-2xl tracking-tight">
             <span>🏠</span><span>HostelMS</span>
           </div>
-          <div className="flex gap-6 text-sm">
-            <Link to="/contact" className="hover:text-white transition">Contact</Link>
-            <Link to="/faq" className="hover:text-white transition">FAQ</Link>
-            <Link to="/register" className="hover:text-white transition">Register</Link>
-            <Link to="/login" className="hover:text-white transition">Login</Link>
+          <div className="flex gap-8 text-sm font-semibold">
+            <Link to="/contact" className="hover:text-brand-gold transition-colors">Contact</Link>
+            <Link to="/faq" className="hover:text-brand-gold transition-colors">FAQ</Link>
+            <Link to="/register" className="hover:text-brand-gold transition-colors">Register</Link>
+            <Link to="/login" className="hover:text-brand-gold transition-colors">Login</Link>
           </div>
-          <p className="text-sm">© {new Date().getFullYear()} HostelMS. All rights reserved.</p>
+          <p className="text-sm text-brand-platinum/50 font-medium">© {new Date().getFullYear()} HostelMS. All rights reserved.</p>
         </div>
       </footer>
     </div>
