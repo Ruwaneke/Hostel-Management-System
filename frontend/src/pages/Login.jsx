@@ -23,7 +23,8 @@ export default function Login() {
     try {
       const response = await authAPI.login(formData);
       if (response.success) {
-        login(response.user);
+        // Pass both user data and token to login function
+        login(response.user, response.token);
         navigate(response.user.role === "admin" ? "/admin-dashboard" : "/user-dashboard");
       } else {
         setError(response.message || "Login failed");
@@ -47,7 +48,7 @@ export default function Login() {
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-4">
-              
+              🏠
             </div>
             <h1 className="text-2xl font-extrabold text-slate-800">Welcome Back</h1>
             <p className="text-slate-400 text-sm mt-1">Sign in to HostelMS</p>
@@ -56,7 +57,7 @@ export default function Login() {
           {/* Error */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-5 text-sm flex items-center gap-2">
-              <span></span> {error}
+              <span>⚠️</span> {error}
             </div>
           )}
 
@@ -97,7 +98,7 @@ export default function Login() {
                   onClick={() => setShowPass(!showPass)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-lg"
                 >
-                  {showPass ? "" : ""}
+                  {showPass ? "👁️" : "👁️‍🗨️"}
                 </button>
               </div>
             </div>

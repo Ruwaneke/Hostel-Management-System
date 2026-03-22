@@ -9,6 +9,9 @@ import FAQ from './pages/FAQ';
 import AdminDashboard from './pages/AdminDashboard';
 import UserDashboard from './pages/UserDashboard';
 import Unauthorized from './pages/Unauthorized';
+import CreateComplaint from './pages/CreateComplaint';
+import UserComplaints from './pages/UserComplaints';
+import AdminComplaints from './pages/AdminComplaints';
 import './index.css';
 
 function App() {
@@ -17,14 +20,40 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public Routes */}
-          <Route path="/"           element={<Home />} />
-          <Route path="/login"      element={<Login />} />
-          <Route path="/register"   element={<Register />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/faq" element={<FAQ />} />
 
-          {/* Admin Protected Route */}
+          {/* Student Protected Routes */}
+          <Route
+            path="/user-dashboard"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-complaint"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <CreateComplaint />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user-complaints"
+            element={
+              <ProtectedRoute requiredRole="user">
+                <UserComplaints />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Protected Routes */}
           <Route
             path="/admin-dashboard"
             element={
@@ -33,13 +62,11 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* User Protected Route */}
           <Route
-            path="/user-dashboard"
+            path="/admin-complaints"
             element={
-              <ProtectedRoute requiredRole="user">
-                <UserDashboard />
+              <ProtectedRoute requiredRole={['admin', 'staff']}>
+                <AdminComplaints />
               </ProtectedRoute>
             }
           />
