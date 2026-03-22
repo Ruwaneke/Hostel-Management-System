@@ -3,6 +3,12 @@ import bcryptjs from 'bcryptjs';
 
 const userSchema = new mongoose.Schema(
     {
+        userId: {
+            type: String,
+            unique: true,
+            sparse: true,
+            trim: true
+        },
         name: {
             type: String,
             required: [true, 'Please provide a name'],
@@ -35,6 +41,16 @@ const userSchema = new mongoose.Schema(
         timestamps: true
     }
 );
+
+// Auto-generate userId before saving
+userSchema.pre('save', async function () {
+    // Only generate userId if it's a new document
+    if (!this.isNew || this.userId) return;
+
+    const rolePrefix = this.role === 'admin' ? 'ADM' : 'USR';
+    const count = await mongoose.model('User').countDocuments();
+    this.userId = `${rolePrefix}${String(count + 1).padStart(4, '0')}`;
+});
 
 // Hash password before saving
 userSchema.pre('save', async function () {
