@@ -29,12 +29,24 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Please provide a password'],
             minlength: [6, 'Password must be at least 6 characters'],
-            select: false // Don't return password by default
+            select: false
         },
         role: {
             type: String,
-            enum: ['admin', 'user'],
-            default: 'user'
+            enum: ['admin', 'staff', 'student'],
+            default: 'student'
+        },
+        roomNumber: {
+            type: String,
+            default: null
+        },
+        hostelBlock: {
+            type: String,
+            default: null
+        },
+        isActive: {
+            type: Boolean,
+            default: true
         }
     },
     {
@@ -43,22 +55,28 @@ const userSchema = new mongoose.Schema(
 );
 
 // Auto-generate userId before saving
-userSchema.pre('save', async function () {
-    // Only generate userId if it's a new document
-    if (!this.isNew || this.userId) return;
+userSchema.pre('save', async function (next) {
+    if (!this.isNew || this.userId) return next();
 
-    const rolePrefix = this.role === 'admin' ? 'ADM' : 'USR';
-    const count = await mongoose.model('User').countDocuments();
-    this.userId = `${rolePrefix}${String(count + 1).padStart(4, '0')}`;
+    try {
+        const rolePrefix = this.role === 'admin' ? 'ADM' : this.role === 'staff' ? 'STF' : 'STU';
+        const count = await mongoose.model('User').countDocuments({ role: this.role });
+        this.userId = `${rolePrefix}${String(count + 1).padStart(3, '0')}`;
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Hash password before saving
-userSchema.pre('save', async function () {
-    // Only hash if password is modified
-    if (!this.isModified('password')) return;
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return next();
 
-    const salt = await bcryptjs.genSalt(10);
-    this.password = await bcryptjs.hash(this.password, salt);
+    try {
+        const salt = await bcryptjs.genSalt(10);
+        this.password = await bcryptjs.hash(this.password, salt);
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Method to compare passwords
