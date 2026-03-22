@@ -2,6 +2,12 @@ import mongoose from 'mongoose';
 
 const complaintSchema = new mongoose.Schema(
     {
+        complaintId: {
+            type: String,
+            unique: true,
+            sparse: true,
+            trim: true
+        },
         student: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
@@ -43,5 +49,18 @@ const complaintSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+// Auto-generate complaintId before saving
+complaintSchema.pre('save', async function (next) {
+    if (!this.isNew || this.complaintId) ;
+
+    try {
+        const categoryPrefix = this.category.substring(0, 3).toUpperCase();
+        const count = await mongoose.model('Complaint').countDocuments();
+        this.complaintId = `${categoryPrefix}${String(count + 1).padStart(4, '0')}`;
+    } catch (error) {
+        next(error);
+    }
+});
 
 export const Complaint = mongoose.model('Complaint', complaintSchema);
