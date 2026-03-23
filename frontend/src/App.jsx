@@ -1,7 +1,29 @@
-import React from "react"; 
-import Payment from "./pages/payment"; 
-function App() { 
-  return ( 
-  <div className="bg-gray-100 min-h-screen"> <Payment /> </div> ); 
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
+import NotificationProvider from "./context/NotificationContext";
+import BookingProvider from "./context/BookingContext";
 
-} export default App;
+function App() {
+  return (
+    <NotificationProvider>
+      <BookingProvider>
+        <Router>
+          <div className="bg-gray-50 min-h-screen dark:bg-gray-900 transition-colors">
+            <Header />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<Admin />} />
+            </Routes>
+          </div>
+        </Router>
+      </BookingProvider>
+    </NotificationProvider>
+  );
+}
+
+export default App;
