@@ -28,7 +28,7 @@ export default function Notification() {
           return (
             <motion.div
               key={notification.id}
-              initial={{ opacity: 0, x: 300 }}
+              initial={{ opacity: 0, x: 300 }} 
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 300 }}
               className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 flex items-center space-x-3 border-l-4 border-gray-300 dark:border-gray-600"
