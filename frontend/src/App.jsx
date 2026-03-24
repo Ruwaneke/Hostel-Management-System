@@ -1,7 +1,15 @@
-import React from "react"; 
-import Payment from "./pages/payment"; 
-function App() { 
-  return ( 
-  <div className="bg-gray-100 min-h-screen"> <Payment /> </div> ); 
+import React from "react";
+import HomePage from "./pages/HomePage";
+import { BrowserRouter, Route, Router, Routes } from "react-router-dom";
 
-} export default App;
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<HomePage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
