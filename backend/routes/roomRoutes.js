@@ -1,22 +1,38 @@
 import express from 'express';
-import { protect, adminOnly } from '../middleware/auth.js';
-import {
-    getRooms, getRoom, createRoom, updateRoom, deleteRoom,
-    assignRoom, vacateRoom
-} from '../controllers/roomController.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { createRoom, getAllRooms, getRoomById, updateRoom, deleteRoom } from '../controllers/roomController.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
 
-router.use(protect); // all room routes require login
+// Setup exact path to Frontend public folder
+const uploadDir = path.resolve(__dirname, '../../frontend/public/roomImage');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-router.get('/', getRooms);
-router.get('/:id', getRoom);
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir); 
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '-'));
+    }
+});
 
-// Admin only
-router.post('/', adminOnly, createRoom);
-router.put('/:id', adminOnly, updateRoom);
-router.delete('/:id', adminOnly, deleteRoom);
-router.post('/:id/assign', adminOnly, assignRoom);
-router.post('/:id/vacate', adminOnly, vacateRoom);
+const upload = multer({ storage: storage });
+
+router.route('/')
+    .get(getAllRooms)
+    .post(upload.array('images', 5), createRoom); 
+
+router.route('/:id')
+    .get(getRoomById)
+    .put(upload.array('images', 5), updateRoom)
+    .delete(deleteRoom);
 
 export default router;
