@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const ProtectedRoute = ({ children, requiredRole = null }) => {
-  const { user, loading } = useAuth();
+  const { user, token, loading } = useAuth();
 
   if (loading) {
     return (
@@ -16,12 +16,17 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
     );
   }
 
-  if (!user) {
+  // Check if token exists
+  if (!token || !user) {
     return <Navigate to="/login" />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to="/unauthorized" />;
+  // Check role if required
+  if (requiredRole) {
+    const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!roles.includes(user.role)) {
+      return <Navigate to="/unauthorized" />;
+    }
   }
 
   return children;
