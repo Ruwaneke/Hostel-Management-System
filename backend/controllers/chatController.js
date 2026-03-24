@@ -1,79 +1,102 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-// IMPORT YOUR ROOM MODEL HERE (adjust path if needed)
-import { Room } from '../models/Room.js'; 
-
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+import { Room } from '../models/Room.js';
 
 export const handleChat = async (req, res) => {
     try {
-        const { message } = req.body;
+        // Now we receive the message AND the chat history from React
+        const { message, history } = req.body;
 
         if (!message) {
             return res.status(400).json({ success: false, reply: "Please say something!" });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Format the history so the AI can read it easily
+        const chatContext = history 
+            ? history.map(h => `${h.sender === 'user' ? 'Student' : 'AI'}: ${h.text}`).join('\n') 
+            : "";
 
-        // --- PART 1: Ask AI to extract search parameters into JSON ---
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        // 1. extractionPrompt with Context
         const extractionPrompt = `
-        You are an assistant for a Hostel Management System. A student asked: "${message}"
-        Extract their search preferences and return ONLY a valid JSON object. Do not include markdown formatting or backticks.
+        You are an AI for a University Student Hostel. 
+        Recent Conversation:
+        ${chatContext}
+        Student's new message: "${message}"
+
+        Based on the conversation and new message, determine if we need to search the database for a room right now.
+        Return ONLY a valid JSON object. Do not include markdown formatting or backticks.
         Use these exact keys:
-        - "gender" (string: "Boy", "Girl", or null if not mentioned)
-        - "type" (string: "Single", "Double", "Triple", or null)
-        - "isAC" (boolean: true if they want AC, false if non-AC, null if not mentioned)
-        - "maxPrice" (number: the maximum monthly fee they mentioned, or null)
+        - "isSearch" (boolean: true if they are actively looking for a room, checking availability, or asking about prices. false if just chatting/greeting)
+        - "type" (string: "Single", "Double", "Triple", "Dormitory", or null)
+        - "maxPrice" (number: max monthly fee, or null)
+        - "gender" (string: "Boy", "Girl", or null)
+        - "isAC" (boolean: true for AC, false for non-AC, null for any)
         `;
 
         const jsonResult = await model.generateContent(extractionPrompt);
-        let searchParams = {};
+        let searchParams = { isSearch: false };
         
         try {
-            // Clean up the text just in case the AI added formatting
             const cleanJsonText = jsonResult.response.text().replace(/```json/g, '').replace(/```/g, '').trim();
             searchParams = JSON.parse(cleanJsonText);
         } catch (e) {
-            console.log("Could not parse AI JSON:", jsonResult.response.text());
+            console.log("Could not parse AI JSON");
         }
 
-        // --- PART 2: Search the MongoDB Database ---
-        let dbQuery = { status: "Available" }; // Only search for available rooms
+        let foundRooms = null;
+        let replyPrompt = "";
 
-        // Apply the AI's filters to our database query
-        if (searchParams.type) dbQuery.type = new RegExp(searchParams.type, 'i');
-        // If your database uses 'isAC' or 'hasAC', map it here:
-        if (searchParams.isAC !== null && searchParams.isAC !== undefined) dbQuery.isAC = searchParams.isAC; 
-        if (searchParams.maxPrice) dbQuery.price = { $lte: searchParams.maxPrice };
-        // If your Room model has a gender/block field, add it here:
-        // if (searchParams.gender) dbQuery.allowedGender = new RegExp(searchParams.gender, 'i');
+        // 2. Search Database if needed
+        if (searchParams.isSearch) {
+            let dbQuery = { status: "Available" }; 
+            if (searchParams.type) dbQuery.type = new RegExp(searchParams.type, 'i');
+            if (searchParams.maxPrice) dbQuery.price = { $lte: searchParams.maxPrice };
+            // Add gender/AC if your DB supports them!
 
-        // Fetch matching rooms from MongoDB
-        const foundRooms = await Room.find(dbQuery).limit(5);
+            foundRooms = await Room.find(dbQuery).limit(3);
 
-        // --- PART 3: Ask AI to write a friendly reply based on the DB results ---
-        const replyPrompt = `
-        You are a helpful hostel receptionist.
-        The student asked: "${message}"
-        Here are the available rooms from the database: ${JSON.stringify(foundRooms)}
-        
-        If the database returned rooms, tell the student the details (room number, type, price) nicely. 
-        If the database array is empty, politely say we don't have exactly what they are looking for right now, but they can try adjusting their search.
-        Keep the answer short, friendly, and use formatting like bullet points if listing multiple rooms.
-        `;
+            replyPrompt = `
+            IMPORTANT RULES:
+            1. You are a Student Hostel Assistant (for long-term semesters/months). NEVER say "for tonight" or act like a hotel.
+            2. If the student asks you to speak Sinhala, you MUST reply entirely in Sinhala.
+            3. If a room says "Any" gender, just say "suitable for you". Don't use robotic terms like 'Any gender room'.
+
+            Recent Conversation:
+            ${chatContext}
+            Student's message: "${message}"
+            
+            Database Results: ${JSON.stringify(foundRooms)}
+            
+            Write a helpful, natural reply to the student. If rooms are found, list the room number, type, and monthly fee clearly. If none found, say so politely.
+            `;
+        } else {
+            // 3. Conversational Prompt (with memory)
+            replyPrompt = `
+            IMPORTANT RULES:
+            1. You are a Student Hostel Assistant. Do not act like a nightly hotel.
+            2. If the student asks you to speak Sinhala, you MUST reply entirely in Sinhala.
+            3. Read the conversation history to understand context (e.g., if they ask a follow-up question about a room you just showed them).
+
+            Recent Conversation:
+            ${chatContext}
+            Student's message: "${message}"
+            
+            Write a natural, helpful reply based on the context. Keep it short.
+            `;
+        }
 
         const finalResult = await model.generateContent(replyPrompt);
         const finalReply = finalResult.response.text();
 
-        // Send the AI's friendly reply back to the React frontend
         res.status(200).json({
             success: true,
-            reply: finalReply,
-            rawRooms: foundRooms // Sending this just in case you want to use the raw data in React
+            reply: finalReply
         });
 
     } catch (error) {
         console.error("Chat Error:", error);
-        res.status(500).json({ success: false, reply: "Sorry, my AI brain is resting right now. Please try again later!" });
+        res.status(500).json({ success: false, reply: "Sorry, I am having trouble connecting to my AI brain right now!" });
     }
 };
