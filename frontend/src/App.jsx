@@ -14,19 +14,21 @@ import UserComplaints from './pages/UserComplaints';
 import AdminComplaints from './pages/AdminComplaints';
 import './index.css';
 
+// 1. IMPORT THE CHATBOT HERE (Make sure the path matches where you saved the file)
+import AIChatbot from './components/AIChatbot'; 
+
 // 2. CREATE A SMART WRAPPER FOR THE CHATBOT
-// This function checks the current page URL and hides the chatbot on specific pages
 function SmartChatbot() {
   const location = useLocation();
   
   // List the exact paths where the chatbot SHOULD NOT appear
-  const hideOnPages = ['/login', '/register', '/admin-dashboard', '/unauthorized'];
+  const hideOnPages = ['/login', '/register', '/admin-dashboard', '/unauthorized', '/admin-complaints'];
   
   if (hideOnPages.includes(location.pathname)) {
-    return null; // Hide chatbot
+    return null; 
   }
   
-  return <AIChatbot />; // Show chatbot on Home, UserDashboard, FAQ, Contact, etc.
+  return <AIChatbot />; 
 }
 
 function App() {
@@ -47,7 +49,7 @@ function App() {
           <Route
             path="/user-dashboard"
             element={
-              <ProtectedRoute requiredRole="user">
+              <ProtectedRoute requiredRole="student">
                 <UserDashboard />
               </ProtectedRoute>
             }
@@ -55,7 +57,7 @@ function App() {
           <Route
             path="/create-complaint"
             element={
-              <ProtectedRoute requiredRole="user">
+              <ProtectedRoute requiredRole="student">
                 <CreateComplaint />
               </ProtectedRoute>
             }
@@ -63,7 +65,7 @@ function App() {
           <Route
             path="/user-complaints"
             element={
-              <ProtectedRoute requiredRole="user">
+              <ProtectedRoute requiredRole="student">
                 <UserComplaints />
               </ProtectedRoute>
             }
@@ -91,8 +93,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
 
-        {/* 3. PLACE THE CHATBOT HERE */}
-        {/* Because it is inside the Router but outside the Routes, it floats globally! */}
+        {/* 3. SMART CHATBOT WRAPPER */}
         <SmartChatbot />
 
       </AuthProvider>
