@@ -9,15 +9,16 @@ const menuItems = [
   { id: "laundry",    label: "Laundry",    icon: "" },
   { id: "complaints", label: "Complaints", icon: "" },
   { id: "meals",      label: "Meals",      icon: "" },
+  { id: "contact",    label: "Contact",    icon: "" },
 ];
 
 const statusColor = {
-  Paid:      "bg-green-100 text-green-700",
-  Upcoming:  "bg-amber-100 text-amber-700",
-  Delivered: "bg-green-100 text-green-700",
+  Paid:      "bg-yellow-100 text-yellow-800",
+  Upcoming:  "bg-yellow-100 text-yellow-800",
+  Delivered: "bg-yellow-100 text-yellow-800",
   Open:      "bg-red-100 text-red-700",
-  Resolved:  "bg-green-100 text-green-700",
-  Pending:   "bg-amber-100 text-amber-700",
+  Resolved:  "bg-yellow-100 text-yellow-800",
+  Pending:   "bg-yellow-100 text-yellow-800",
 };
 
 const Badge = ({ s }) => (
@@ -29,20 +30,86 @@ const Badge = ({ s }) => (
 const TH = ({ children }) => <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{children}</th>;
 const TD = ({ children }) => <td className="px-4 py-3 text-sm text-slate-700 border-t border-slate-100">{children}</td>;
 
-const mealsData = [
-  { day: "Monday",    breakfast: "Oats & Milk",      lunch: "Rice & Dal",       dinner: "Roti & Paneer" },
-  { day: "Tuesday",   breakfast: "Bread & Eggs",     lunch: "Noodles",          dinner: "Biryani"       },
-  { day: "Wednesday", breakfast: "Poha",             lunch: "Chana Masala",     dinner: "Dal Makhani"   },
-  { day: "Thursday",  breakfast: "Idli & Sambar",    lunch: "Rajma Rice",       dinner: "Pasta"         },
-  { day: "Friday",    breakfast: "Upma",             lunch: "Pulao",            dinner: "Chole Bhature" },
-];
-
 export default function UserDashboard() {
   const [active, setActive]       = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
   const [complaint, setComplaint] = useState("");
   const [laundryItems, setLaundryItems] = useState("");
   const [submitted, setSubmitted] = useState({ complaint: false, laundry: false });
+
+  const restaurants = [
+    {
+      id: 1,
+      name: "Avanya",
+      phone: "+94112345678",
+      address: "Malabe, Sri Lanka",
+      coordinates: { lat: 6.8730, lng: 80.7690 },
+      meals: {
+        today: {
+          breakfast: { name: "Breakfast", items: ["Hoppers", "Jaggery", "Tea"] },
+          lunch: { name: "Lunch", items: ["Curry & Rice", "Sambol", "Papadum"] },
+          dinner: { name: "Dinner", items: ["Kottu Roti", "Curry Gravy", "Pickle"] }
+        }
+      }
+    },
+    {
+      id: 2,
+      name: "Luck Chinese Foods",
+      phone: "+94119876543",
+      address: "Malabe, Sri Lanka",
+      coordinates: { lat: 6.8735, lng: 80.7695 },
+      meals: {
+        today: {
+          breakfast: { name: "Breakfast", items: ["Steamed Momos", "Green Tea", "Toast"] },
+          lunch: { name: "Lunch", items: ["Fried Rice", "Spring Rolls", "Sweet & Sour Chicken"] },
+          dinner: { name: "Dinner", items: ["Hakka Noodles", "Chilli Garlic Prawns", "Fortune Cookies"] }
+        }
+      }
+    },
+    {
+      id: 3,
+      name: "Cafe Miya Miya",
+      phone: "+94114567890",
+      address: "Malabe, Sri Lanka",
+      coordinates: { lat: 6.8740, lng: 80.7700 },
+      meals: {
+        today: {
+          breakfast: { name: "Breakfast", items: ["Matcha Pancakes", "Miso Soup", "Rice Balls"] },
+          lunch: { name: "Lunch", items: ["Teriyaki Chicken", "Edamame", "Miso Broth"] },
+          dinner: { name: "Dinner", items: ["Tempura Udon", "Grilled Fish", "Green Tea Tiramisu"] }
+        }
+      }
+    },
+    {
+      id: 4,
+      name: "Anama",
+      phone: "+94112223334",
+      address: "Malabe, Sri Lanka",
+      coordinates: { lat: 6.8745, lng: 80.7705 },
+      meals: {
+        today: {
+          breakfast: { name: "Breakfast", items: ["Short Eats", "Wadeye", "Curry"] },
+          lunch: { name: "Lunch", items: ["Dhal Curry", "Coconut Sambol", "Rice & Gravy"] },
+          dinner: { name: "Dinner", items: ["Fish Curry", "Bread Roll", "Jaggery Pudding"] }
+        }
+      }
+    },
+    {
+      id: 5,
+      name: "Golden Meal",
+      phone: "+94115555666",
+      address: "Malabe, Sri Lanka",
+      coordinates: { lat: 6.8750, lng: 80.7710 },
+      meals: {
+        today: {
+          breakfast: { name: "Breakfast", items: ["Eggs Benedict", "Toast", "Coffee"] },
+          lunch: { name: "Lunch", items: ["Grilled Chicken", "Vegetables", "Fries"] },
+          dinner: { name: "Dinner", items: ["Steak", "Mashed Potatoes", "Chocolate Cake"] }
+        }
+      }
+    }
+  ];
+
   const { user, logout }          = useAuth();
   const navigate                  = useNavigate();
 
@@ -227,22 +294,216 @@ export default function UserDashboard() {
 
       case "meals":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">This Week Meal Schedule</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50">
-                  <tr><TH>Day</TH><TH>Breakfast</TH><TH>Lunch</TH><TH>Dinner</TH></tr>
-                </thead>
-                <tbody>
-                  {mealsData.map((m, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD><span className="font-bold text-indigo-700">{m.day}</span></TD>
-                      <TD>{m.breakfast}</TD><TD>{m.lunch}</TD><TD>{m.dinner}</TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Restaurant Meals</h2>
+              <p className="text-slate-400 text-sm mt-1">Check available meals from our partner restaurants</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {restaurants.map(restaurant => (
+                <div key={restaurant.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition">
+                  <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 text-white">
+                    <h3 className="font-bold text-lg">{restaurant.name}</h3>
+                    <p className="text-sm text-indigo-100">Malabe, Sri Lanka</p>
+                  </div>
+
+                  <div className="p-5 space-y-4">
+                    {/* Today's Meals Summary */}
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                      <h4 className="text-sm font-bold text-slate-800 mb-3">Today's Available Items</h4>
+                      <div className="space-y-2">
+                        {Object.entries(restaurant.meals.today).map(([mealType, mealData]) => (
+                          mealData.items.length > 0 && (
+                            <div key={mealType} className="bg-white rounded-lg p-3">
+                              <p className="text-xs font-semibold text-slate-500 uppercase mb-2">{mealData.name}</p>
+                              <ul className="space-y-1">
+                                {mealData.items.map((item, idx) => (
+                                  <li key={idx} className="text-sm text-slate-700 flex items-center gap-2">
+                                    <span className="text-indigo-600 font-bold">•</span>
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Contact & Action Buttons */}
+                    <div className="space-y-3">
+                      {/* Phone Number - Clickable to Call */}
+                      <a
+                        href={`tel:${restaurant.phone}`}
+                        className="flex items-center gap-3 w-full px-4 py-3 bg-green-100 hover:bg-green-200 text-green-800 font-semibold rounded-lg transition"
+                      >
+                        <span className="text-xl">☎️</span>
+                        <div>
+                          <p className="text-xs text-green-700">Call Restaurant</p>
+                          <p className="text-sm font-bold">{restaurant.phone}</p>
+                        </div>
+                      </a>
+
+                      {/* Google Maps Button */}
+                      <button
+                        onClick={() => {
+                          const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(restaurant.name)}/@${restaurant.coordinates.lat},${restaurant.coordinates.lng},15z`;
+                          window.open(mapsUrl, "_blank");
+                        }}
+                        className="w-full px-4 py-3 bg-amber-100 hover:bg-amber-200 text-amber-800 font-semibold rounded-lg transition flex items-center justify-center gap-2"
+                      >
+                        📍 View Location on Map
+                      </button>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-200">
+                      {Object.entries(restaurant.meals.today).map(([type, data]) => (
+                        <div key={type} className="text-center bg-slate-50 rounded-lg p-2">
+                          <div className="text-lg font-bold text-indigo-600">{data.items.length}</div>
+                          <div className="text-xs text-slate-500 capitalize">{type}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 text-white">
+              <h3 className="font-bold text-lg mb-2">🍽️ Ready to Order?</h3>
+              <p className="text-sm text-amber-50 mb-4">Click on any restaurant's phone number to call and place your order, or view the location on Google Maps to visit in person.</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs font-semibold text-amber-200">Total Restaurants</p>
+                  <p className="text-2xl font-bold mt-1">{restaurants.length}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-amber-200">Daily Options</p>
+                  <p className="text-2xl font-bold mt-1">3</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "contact":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Contact Administration</h2>
+              <p className="text-slate-400 text-sm mt-1">Get in touch with management & restaurant services</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl p-6 text-white">
+                  <h3 className="font-bold text-lg mb-4">Admin Contact Details</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Hostel Manager</p>
+                      <p className="text-lg font-bold">Mr. Rajesh Kumar</p>
+                      <p className="text-sm text-indigo-200 mt-1">📞 +91 9876543210</p>
+                      <p className="text-sm text-indigo-200">📧 rajesh.kumar@hostel.com</p>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Restaurant Manager</p>
+                      <p className="text-lg font-bold">Ms. Priya Sharma</p>
+                      <p className="text-sm text-indigo-200 mt-1">📞 +91 9876543211</p>
+                      <p className="text-sm text-indigo-200">📧 meals@hostel.com</p>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Hostel Address</p>
+                      <p className="text-sm text-indigo-100 leading-relaxed mt-2">
+                        Green Valley Hostel,<br/>
+                        MG Road, Residency Area,<br/>
+                        Bengaluru, Karnataka 560001,<br/>
+                        India
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Contact Actions */}
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h3 className="font-bold text-slate-800 mb-4">Quick Actions</h3>
+                  <div className="space-y-2">
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl font-semibold transition border border-green-200">
+                      <span>📱</span> Call Manager
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-semibold transition border border-blue-200">
+                      <span>✉️</span> Send Email
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl font-semibold transition border border-purple-200">
+                      <span>💬</span> Message on WhatsApp
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map */}
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-96">
+                  <iframe
+                    title="Hostel Location"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen=""
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d969.8473508816476!2d77.59821971171723!3d12.970391549989005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae16681c1d55d5%3A0x19e8330a4b7b8b8b!2sGreen%20Valley%20Hostel%2C%20MG%20Road%2C%20Bengaluru!5e0!3m2!1sen!2sin!4v1234567890"
+                  ></iframe>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h3 className="font-bold text-slate-800 mb-3">Location Highlights</h3>
+                  <ul className="space-y-2 text-sm text-slate-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Located in the heart of Bengaluru's business district</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Easy access to public transportation (Metro & Bus)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Close to shopping centers, cafes, and restaurants</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Ample parking available for visitors</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Office Hours */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6">
+              <h3 className="font-bold text-slate-800 mb-4">Office Hours & Support</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Admin Office</p>
+                  <p className="text-lg font-bold text-amber-700">9 AM - 6 PM</p>
+                  <p className="text-xs text-slate-500 mt-1">Mon - Fri</p>
+                </div>
+                <div className="text-center border-l border-r border-amber-200">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Restaurant Hours</p>
+                  <p className="text-lg font-bold text-amber-700">24/7 Service</p>
+                  <p className="text-xs text-slate-500 mt-1">All Days</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Emergency Support</p>
+                  <p className="text-lg font-bold text-amber-700">24/7 Available</p>
+                  <p className="text-xs text-slate-500 mt-1">Security & Medical</p>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -252,10 +513,10 @@ export default function UserDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
       {/* Sidebar */}
-      <aside className={"flex flex-col bg-slate-800 text-white transition-all duration-300 " + (collapsed ? "w-16" : "w-56")}>
-        <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-700">
+      <aside className={"flex flex-col text-white transition-all duration-300 " + (collapsed ? "w-16" : "w-56")} style={{backgroundColor: "#14213d"}}>
+        <div className="flex items-center gap-3 px-4 py-5 border-b" style={{borderColor: "rgba(255,255,255,0.1)"}}>
           <span className="text-2xl flex-shrink-0"></span>
           {!collapsed && <span className="font-extrabold text-lg">HostelMS</span>}
         </div>
@@ -267,8 +528,9 @@ export default function UserDashboard() {
               title={collapsed ? item.label : ""}
               className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all " +
                 (active === item.id
-                  ? "bg-white text-slate-800 shadow"
-                  : "text-slate-300 hover:bg-slate-700 hover:text-white")}
+                  ? "text-white shadow"
+                  : "text-gray-300 hover:text-white")}
+              style={active === item.id ? {backgroundColor: "#fca311"} : {backgroundColor: "rgba(252,163,17,0.1)"}}
             >
               <span className="text-base flex-shrink-0">{item.icon}</span>
               {!collapsed && <span>{item.label}</span>}
@@ -278,7 +540,8 @@ export default function UserDashboard() {
         <div className="px-2 pb-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-300 hover:text-red-200 transition-all"
+            style={{backgroundColor: "rgba(239,68,68,0.1)"}}
           >
             <span className="flex-shrink-0"></span>
             {!collapsed && <span>Logout</span>}
