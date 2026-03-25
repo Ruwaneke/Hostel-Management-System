@@ -296,7 +296,13 @@ const addNotification = (complaint, message) => {
 
 export const submitComplaint = async (req, res) => {
     try {
-        const { category, description, imageUrl, priority } = req.body;
+        const { category, description, priority } = req.body;
+        // Construct imageUrl from multer req.file if available
+        let imageUrl = req.body.imageUrl || null;
+        if (req.file) {
+            // Local file URL string formatting (adjust depending on proxy or domain)
+            imageUrl = `/uploads/${req.file.filename}`;
+        }
 
         const student = {
             userId: req.user.userId,
