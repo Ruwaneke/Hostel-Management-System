@@ -8,10 +8,7 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    role: "student",
-    roomNumber: "",
-    hostelBlock: ""
+    confirmPassword: ""
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,24 +41,27 @@ export default function Register() {
     setLoading(true);
 
     try {
+      // Force role = student on backend; only send basic fields
       const response = await authAPI.register({
         name: formData.name,
         email: formData.email,
-        password: formData.password,
-        role: formData.role,
-        roomNumber: formData.roomNumber,
-        hostelBlock: formData.hostelBlock
+        password: formData.password
       });
 
       if (response.success) {
-        // Pass both user data and token to login function
         login(response.user, response.token);
-        navigate(response.user.role === "admin" ? "/admin-dashboard" : "/user-dashboard");
+        // Only students are created from here
+        navigate("/login");
       } else {
         setError(response.message || "Registration failed");
       }
     } catch (err) {
-      setError(err.message || "Cannot connect to server");
+      // Handle 409 Conflict (email already exists)
+      if (err.message && err.message.includes('already')) {
+        setError(err.message);
+      } else {
+        setError(err.message || "Cannot connect to server");
+      }
     } finally {
       setLoading(false);
     }
@@ -78,13 +78,13 @@ export default function Register() {
             <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-4 ring-4 ring-brand-gold/30">
               🏠
             </div>
-            <h1 className="text-3xl font-extrabold text-brand-black tracking-tight">Create Account</h1>
-            <p className="text-slate-500 text-sm mt-2">Join HostelMS</p>
+            <h1 className="text-3xl font-extrabold text-brand-black tracking-tight">Create Student Account</h1>
+            <p className="text-slate-500 text-sm mt-2">Join HostelMS as a student</p>
           </div>
 
           {error && (
             <div className="bg-rose-50 border-l-4 border-rose-500 text-rose-700 px-4 py-3 rounded-r-xl mb-6 text-sm flex items-center gap-3 shadow-sm">
-              <span className="text-lg">⚠️</span> 
+              <span className="text-lg">⚠️</span>
               <span className="font-medium">{error}</span>
             </div>
           )}
@@ -115,46 +115,6 @@ export default function Register() {
                 className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 bg-slate-50"
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Role</label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 bg-slate-50"
-              >
-                <option value="student">Student</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            {formData.role === "student" && (
-              <>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Room Number</label>
-                  <input
-                    type="text"
-                    name="roomNumber"
-                    value={formData.roomNumber}
-                    onChange={handleChange}
-                    placeholder="E.g., 204"
-                    className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 bg-slate-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Hostel Block</label>
-                  <input
-                    type="text"
-                    name="hostelBlock"
-                    value={formData.hostelBlock}
-                    onChange={handleChange}
-                    placeholder="E.g., Block A"
-                    className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 bg-slate-50"
-                  />
-                </div>
-              </>
-            )}
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">Password</label>

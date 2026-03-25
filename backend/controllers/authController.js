@@ -13,9 +13,14 @@ const signToken = (user) =>
         { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
+/**
+ * @desc    Register a new student user
+ * @route   POST /api/auth/register
+ * @access  Public
+ */
 export const register = async (req, res) => {
     try {
-        const { name, email, password, role, roomNumber, hostelBlock } = req.body;
+        const { name, email, password } = req.body;
 
         // Validation
         if (!name || !email || !password) {
@@ -25,58 +30,57 @@ export const register = async (req, res) => {
             });
         }
 
-        if (!['admin', 'staff', 'student'].includes(role)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Role must be "admin", "staff", or "student"'
-            });
-        }
+        // Normalize email to lowercase
+        const normalizedEmail = email.toLowerCase().trim();
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
+        // Check if email already exists
+        const existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
             return res.status(409).json({
                 success: false,
-                message: 'Email already registered'
+                message: 'Email already registered. Please login instead.'
             });
         }
 
-        // Create user
+        // Create user with role='student' (default) and isActive=true
         const user = await User.create({
-            name,
-            email,
+            name: name.trim(),
+            email: normalizedEmail,
             password,
-            role,
-            roomNumber: role === 'student' ? roomNumber : null,
-            hostelBlock: role === 'student' ? hostelBlock : null,
+            role: 'user',  // Force student role
             isActive: true
         });
 
-        // Fetch fresh from DB to get userId set by pre-save hook
+        // Fetch fresh from DB without password
         const savedUser = await User.findById(user._id).select('-password');
-
         const token = signToken(savedUser);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
-            message: 'User registered successfully',
+            message: 'Registration successful',
             token,
             user: savedUser
         });
     } catch (error) {
+        console.error('Register error:', error);
         if (error.code === 11000) {
             return res.status(409).json({
                 success: false,
                 message: 'Email already exists'
             });
         }
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Server error during registration'
+            message: error.message || 'Registration failed'
         });
     }
 };
 
+/**
+ * @desc    Login user
+ * @route   POST /api/auth/login
+ * @access  Public
+ */
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -90,7 +94,7 @@ export const login = async (req, res) => {
         }
 
         // Find user and include password field
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
 
         if (!user) {
             return res.status(401).json({
@@ -119,20 +123,21 @@ export const login = async (req, res) => {
 
         const token = signToken(user);
 
-        // Remove password before sending response
+        // Send user without password
         const userResponse = user.toObject();
         delete userResponse.password;
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: 'Login successful',
             token,
             user: userResponse
         });
     } catch (error) {
-        res.status(500).json({
+        console.error('Login error:', error);
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Server error during login'
+            message: error.message || 'Login failed'
         });
     }
 };

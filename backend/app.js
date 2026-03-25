@@ -14,6 +14,7 @@ import laundryRoutes from './routes/laundryRoutes.js';
 import complaintRoutes from './routes/complaintRoutes.js';
 import mealRoutes from './routes/mealRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
+import userRoutes from './routes/userRoutes.js'; // For testing only, to be removed later
 
 const app = express();
 
@@ -47,7 +48,7 @@ app.use('/api/laundry', laundryRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/feedback', feedbackRoutes);
-
+app.use('/api/users', userRoutes); // For testing only, to be removed later
 // ── Error Handling ────────────────────────────────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);

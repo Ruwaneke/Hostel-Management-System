@@ -32,12 +32,10 @@ export const authAPI = {
   }
 };
 
-// Get token from localStorage
 export const getToken = () => {
   return localStorage.getItem('token');
 };
 
-// Get auth header for API requests
 export const getAuthHeader = () => {
   const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
