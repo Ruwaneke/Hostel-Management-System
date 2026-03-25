@@ -8,7 +8,6 @@ const menuItems = [
   { id: "payments",   label: "Payments",   icon: "" },
   { id: "laundry",    label: "Laundry",    icon: "" },
   { id: "complaints", label: "Complaints", icon: "" },
-  { id: "meals",      label: "Meals",      icon: "" },
   { id: "contact",    label: "Contact",    icon: "" },
 ];
 
@@ -288,102 +287,6 @@ export default function UserDashboard() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        );
-
-      case "meals":
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-slate-800">Restaurant Meals</h2>
-              <p className="text-slate-400 text-sm mt-1">Check available meals from our partner restaurants</p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {restaurants.map(restaurant => (
-                <div key={restaurant.id} className="bg-white rounded-2xl shadow-sm overflow-hidden hover:shadow-lg transition">
-                  <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-4 text-white">
-                    <h3 className="font-bold text-lg">{restaurant.name}</h3>
-                    <p className="text-sm text-indigo-100">Malabe, Sri Lanka</p>
-                  </div>
-
-                  <div className="p-5 space-y-4">
-                    {/* Today's Meals Summary */}
-                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                      <h4 className="text-sm font-bold text-slate-800 mb-3">Today's Available Items</h4>
-                      <div className="space-y-2">
-                        {Object.entries(restaurant.meals.today).map(([mealType, mealData]) => (
-                          mealData.items.length > 0 && (
-                            <div key={mealType} className="bg-white rounded-lg p-3">
-                              <p className="text-xs font-semibold text-slate-500 uppercase mb-2">{mealData.name}</p>
-                              <ul className="space-y-1">
-                                {mealData.items.map((item, idx) => (
-                                  <li key={idx} className="text-sm text-slate-700 flex items-center gap-2">
-                                    <span className="text-indigo-600 font-bold">•</span>
-                                    {item}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Contact & Action Buttons */}
-                    <div className="space-y-3">
-                      {/* Phone Number - Clickable to Call */}
-                      <a
-                        href={`tel:${restaurant.phone}`}
-                        className="flex items-center gap-3 w-full px-4 py-3 bg-green-100 hover:bg-green-200 text-green-800 font-semibold rounded-lg transition"
-                      >
-                        <span className="text-xl">☎️</span>
-                        <div>
-                          <p className="text-xs text-green-700">Call Restaurant</p>
-                          <p className="text-sm font-bold">{restaurant.phone}</p>
-                        </div>
-                      </a>
-
-                      {/* Google Maps Button */}
-                      <button
-                        onClick={() => {
-                          const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(restaurant.name)}/@${restaurant.coordinates.lat},${restaurant.coordinates.lng},15z`;
-                          window.open(mapsUrl, "_blank");
-                        }}
-                        className="w-full px-4 py-3 bg-amber-100 hover:bg-amber-200 text-amber-800 font-semibold rounded-lg transition flex items-center justify-center gap-2"
-                      >
-                        📍 View Location on Map
-                      </button>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-200">
-                      {Object.entries(restaurant.meals.today).map(([type, data]) => (
-                        <div key={type} className="text-center bg-slate-50 rounded-lg p-2">
-                          <div className="text-lg font-bold text-indigo-600">{data.items.length}</div>
-                          <div className="text-xs text-slate-500 capitalize">{type}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 text-white">
-              <h3 className="font-bold text-lg mb-2">🍽️ Ready to Order?</h3>
-              <p className="text-sm text-amber-50 mb-4">Click on any restaurant's phone number to call and place your order, or view the location on Google Maps to visit in person.</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs font-semibold text-amber-200">Total Restaurants</p>
-                  <p className="text-2xl font-bold mt-1">{restaurants.length}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-amber-200">Daily Options</p>
-                  <p className="text-2xl font-bold mt-1">3</p>
-                </div>
-              </div>
             </div>
           </div>
         );
