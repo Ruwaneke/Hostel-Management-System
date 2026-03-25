@@ -35,11 +35,11 @@ const steps = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="min-h-screen bg-[#e5e5e5] text-black">
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-blue-500 text-white">
+      <section className="bg-[#14213d] text-white">
         <div className="max-w-7xl mx-auto px-6 py-24 flex flex-col lg:flex-row items-center gap-12">
           {/* Text */}
           <div className="flex-1 text-center lg:text-left">
@@ -48,13 +48,13 @@ export default function Home() {
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
               Smart Hostel<br />
-              <span className="text-yellow-300">All in One Platform</span>
+              <span className="text-[#fca311]">All in One Platform</span>
             </h1>
-            <p className="text-indigo-100 text-lg mb-8 max-w-xl mx-auto lg:mx-0">
+            <p className="text-gray-200 text-lg mb-8 max-w-xl mx-auto lg:mx-0">
               Streamline room allocation, payments, laundry, complaints, and meals — all from a single easy-to-use dashboard.
             </p>
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-              <Link to="/register" className="bg-yellow-400 hover:bg-yellow-300 text-indigo-900 font-bold px-8 py-3 rounded-xl transition shadow-lg">
+              <Link to="/register" className="bg-[#fca311] hover:bg-[#f2941d] text-white font-bold px-8 py-3 rounded-xl transition shadow-lg">
                 Get Started Free
               </Link>
               <Link to="/login" className="bg-white/20 hover:bg-white/30 text-white font-semibold px-8 py-3 rounded-xl border border-white/30 transition">
@@ -80,12 +80,12 @@ export default function Home() {
       </section>
 
       {/* ── STATS ─────────────────────────────────────────── */}
-      <section className="bg-indigo-600 text-white">
+      <section className="bg-[#14213d] text-white">
         <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
           {stats.map((s) => (
             <div key={s.label}>
-              <div className="text-3xl font-extrabold text-yellow-300">{s.value}</div>
-              <div className="text-indigo-200 text-sm mt-1">{s.label}</div>
+              <div className="text-3xl font-extrabold text-[#fca311]">{s.value}</div>
+              <div className="text-gray-300 text-sm mt-1">{s.label}</div>
             </div>
           ))}
         </div>
@@ -94,10 +94,10 @@ export default function Home() {
       {/* ── FEATURES ──────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-3">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-black mb-3">
             Everything You Need
           </h2>
-          <p className="text-slate-500 text-lg max-w-xl mx-auto">
+          <p className="text-gray-600 text-lg max-w-xl mx-auto">
             A complete solution built for both students and hostel administrators.
           </p>
         </div>
@@ -118,20 +118,20 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────── */}
-      <section className="bg-indigo-50 py-20">
+      <section className="bg-[#f5f5f5] py-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-extrabold text-slate-800 mb-3">How It Works</h2>
-            <p className="text-slate-500">Get up and running in 3 simple steps.</p>
+            <h2 className="text-3xl font-extrabold text-black mb-3">How It Works</h2>
+            <p className="text-gray-600">Get up and running in 3 simple steps.</p>
           </div>
           <div className="grid sm:grid-cols-3 gap-8">
             {steps.map((s) => (
               <div key={s.step} className="bg-white rounded-2xl p-8 shadow-sm text-center">
-                <div className="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center font-extrabold text-lg mx-auto mb-4">
+                <div className="w-12 h-12 bg-[#14213d] text-white rounded-full flex items-center justify-center font-extrabold text-lg mx-auto mb-4">
                   {s.step}
                 </div>
-                <h3 className="font-bold text-slate-800 text-lg mb-2">{s.title}</h3>
-                <p className="text-slate-500 text-sm">{s.desc}</p>
+                <h3 className="font-bold text-black text-lg mb-2">{s.title}</h3>
+                <p className="text-gray-600 text-sm">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -163,12 +163,12 @@ export default function Home() {
       </section>
 
       {/* ── CTA ───────────────────────────────────────────── */}
-      <section className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white py-20">
+      <section className="bg-[#14213d] text-white py-20">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">Ready to Get Started?</h2>
-          <p className="text-indigo-200 text-lg mb-8">Join hundreds of students and admins already using HostelMS.</p>
+          <p className="text-gray-300 text-lg mb-8">Join hundreds of students and admins already using HostelMS.</p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/register" className="bg-yellow-400 hover:bg-yellow-300 text-indigo-900 font-bold px-8 py-3 rounded-xl transition shadow-lg">
+            <Link to="/register" className="bg-[#fca311] hover:bg-[#f2941d] text-white font-bold px-8 py-3 rounded-xl transition shadow-lg">
               Create Account
             </Link>
             <Link to="/contact" className="bg-white/20 hover:bg-white/30 text-white font-semibold px-8 py-3 rounded-xl border border-white/30 transition">
@@ -179,7 +179,7 @@ export default function Home() {
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────── */}
-      <footer className="bg-slate-800 text-slate-400 py-10">
+      <footer className="bg-[#14213d] text-gray-400 py-10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-white font-bold text-lg">
             <span>🏠</span><span>HostelMS</span>

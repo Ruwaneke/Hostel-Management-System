@@ -93,12 +93,12 @@ export default function FAQ() {
   const toggle = (key) => setOpenIndex(openIndex === key ? null : key);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#e5e5e5]">
       <Navbar />
 
-      <section className="bg-gradient-to-br from-indigo-700 to-blue-500 text-white py-16 text-center">
+      <section className="bg-[#14213d] text-white py-16 text-center">
         <h1 className="text-4xl font-extrabold mb-3">Frequently Asked Questions</h1>
-        <p className="text-indigo-200 text-lg max-w-xl mx-auto">
+        <p className="text-gray-300 text-lg max-w-xl mx-auto">
           Find answers to the most common questions about HostelMS.
         </p>
       </section>
@@ -106,8 +106,8 @@ export default function FAQ() {
       <div className="max-w-4xl mx-auto px-6 py-16 space-y-10">
         {faqs.map((section) => (
           <div key={section.category}>
-            <h2 className="text-xl font-bold text-indigo-700 mb-4 flex items-center gap-2">
-              <span className="w-1 h-6 bg-indigo-600 rounded-full inline-block"></span>
+            <h2 className="text-xl font-bold text-[#14213d] mb-4 flex items-center gap-2">
+              <span className="w-1 h-6 bg-[#fca311] rounded-full inline-block"></span>
               {section.category}
             </h2>
             <div className="space-y-3">
@@ -115,16 +115,16 @@ export default function FAQ() {
                 const key = section.category + idx;
                 const isOpen = openIndex === key;
                 return (
-                  <div key={key} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                  <div key={key} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <button
-                      className="w-full text-left px-6 py-4 flex items-center justify-between font-semibold text-slate-800 hover:bg-slate-50 transition"
+                      className="w-full text-left px-6 py-4 flex items-center justify-between font-semibold text-black hover:bg-gray-50 transition"
                       onClick={() => toggle(key)}
                     >
                       <span>{item.q}</span>
-                      <span className={"text-indigo-500 transition-transform duration-300 text-xl " + (isOpen ? "rotate-45" : "")}>+</span>
+                      <span className={"text-[#fca311] transition-transform duration-300 text-xl " + (isOpen ? "rotate-45" : "")}>+</span>
                     </button>
                     {isOpen && (
-                      <div className="px-6 pb-5 text-slate-600 text-sm leading-relaxed border-t border-slate-100 pt-3">
+                      <div className="px-6 pb-5 text-gray-700 text-sm leading-relaxed border-t border-gray-100 pt-3">
                         {item.a}
                       </div>
                     )}
@@ -135,20 +135,20 @@ export default function FAQ() {
           </div>
         ))}
 
-        <div className="bg-indigo-600 text-white rounded-2xl p-8 text-center mt-12">
+        <div className="bg-[#14213d] text-white rounded-2xl p-8 text-center mt-12">
           <h3 className="text-xl font-bold mb-2">Still have questions?</h3>
-          <p className="text-indigo-200 mb-5">Our support team is happy to help.</p>
+          <p className="text-gray-300 mb-5">Our support team is happy to help.</p>
           <Link
             to="/contact"
-            className="inline-block bg-white text-indigo-700 font-bold px-8 py-3 rounded-xl hover:bg-indigo-50 transition"
+            className="inline-block bg-[#fca311] text-white font-bold px-8 py-3 rounded-xl hover:bg-[#f2941d] transition"
           >
             Contact Us
           </Link>
         </div>
       </div>
 
-      <footer className="bg-slate-800 text-slate-400 py-8 text-center text-sm">
-        {new Date().getFullYear()} HostelMS. All rights reserved.
+      <footer className="bg-[#14213d] text-gray-400 py-8 text-center text-sm">
+        © {new Date().getFullYear()} HostelMS. All rights reserved.
       </footer>
     </div>
   );
