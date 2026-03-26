@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcryptjs from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const userSchema = new mongoose.Schema(
     {
@@ -33,8 +34,8 @@ const userSchema = new mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['admin', 'staff', 'student'],
-            default: 'student'
+            enum: ['admin', 'staff', 'user'],
+            default: 'user'
         },
         roomNumber: {
             type: String,
@@ -54,14 +55,13 @@ const userSchema = new mongoose.Schema(
     }
 );
 
-// Auto-generate userId before saving
+// Replace the old userId pre-save hook with:
 userSchema.pre('save', async function (next) {
     if (!this.isNew || this.userId) return next();
 
     try {
-        const rolePrefix = this.role === 'admin' ? 'ADM' : this.role === 'staff' ? 'STF' : 'STU';
-        const count = await mongoose.model('User').countDocuments({ role: this.role });
-        this.userId = `${rolePrefix}${String(count + 1).padStart(3, '0')}`;
+        // Generate truly unique userId using UUID
+        this.userId = `${this.role.substring(0, 3).toUpperCase()}-${uuidv4().substring(0, 8)}`;
     } catch (error) {
         next(error);
     }

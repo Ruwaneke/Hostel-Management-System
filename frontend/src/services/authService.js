@@ -4,10 +4,8 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 const handleAxiosError = (error) => {
   if (error.response) {
-    // Server responded with an error status (4xx, 5xx)
     throw error.response.data || { success: false, message: 'Server error' };
   } else if (error.request) {
-    // Request was made but no response — backend is down
     throw { success: false, message: 'Cannot connect to server. Make sure the backend is running.' };
   } else {
     throw { success: false, message: error.message || 'An unexpected error occurred' };
@@ -34,4 +32,11 @@ export const authAPI = {
   }
 };
 
+export const getToken = () => {
+  return localStorage.getItem('token');
+};
 
+export const getAuthHeader = () => {
+  const token = localStorage.getItem('token');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
