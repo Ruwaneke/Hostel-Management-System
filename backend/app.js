@@ -50,6 +50,8 @@ app.use('/api/meals', mealRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/users', userRoutes); // For testing only, to be removed later
 // ── Error Handling ────────────────────────────────────────────────────────────
+
+// Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 

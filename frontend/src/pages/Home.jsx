@@ -35,7 +35,7 @@ const steps = [
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="min-h-screen bg-[#e5e5e5] text-black">
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────────── */}
@@ -96,10 +96,10 @@ export default function Home() {
       {/* ── FEATURES ──────────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-6 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 mb-3">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-black mb-3">
             Everything You Need
           </h2>
-          <p className="text-slate-500 text-lg max-w-xl mx-auto">
+          <p className="text-gray-600 text-lg max-w-xl mx-auto">
             A complete solution built for both students and hostel administrators.
           </p>
         </div>

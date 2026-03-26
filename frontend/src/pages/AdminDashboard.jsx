@@ -30,17 +30,17 @@ const colorCls = {
 };
 
 const statusColor = {
-  Active:       "bg-green-100 text-green-700",
-  Admin:        "bg-violet-100 text-violet-700",
-  Paid:         "bg-green-100 text-green-700",
-  Pending:      "bg-amber-100 text-amber-700",
+  Active:       "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Admin:        "bg-[#14213d] bg-opacity-10 text-[#14213d]",
+  Paid:         "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Pending:      "bg-[#fca311] bg-opacity-20 text-[#fca311]",
   Overdue:      "bg-red-100 text-red-700",
-  "In Progress":"bg-amber-100 text-amber-700",
-  Ready:        "bg-cyan-100 text-cyan-700",
-  Delivered:    "bg-green-100 text-green-700",
+  "In Progress":"bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Ready:        "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Delivered:    "bg-[#fca311] bg-opacity-20 text-[#fca311]",
   Open:         "bg-red-100 text-red-700",
-  Resolved:     "bg-green-100 text-green-700",
-  Available:    "bg-green-100 text-green-700",
+  Resolved:     "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Available:    "bg-[#fca311] bg-opacity-20 text-[#fca311]",
   Occupied:     "bg-red-100 text-red-700",
 };
 
@@ -76,13 +76,6 @@ const complaintsData = [
   { student: "Bob Smith",     issue: "Hot water not working",       date: "Mar 6", status: "Resolved"    },
   { student: "David Lee",     issue: "Lights flickering room 205",  date: "Mar 5", status: "In Progress" },
 ];
-const mealsData    = [
-  { day: "Monday",    breakfast: "Oats & Milk",      lunch: "Rice & Dal",       dinner: "Roti & Paneer"  },
-  { day: "Tuesday",   breakfast: "Bread & Eggs",     lunch: "Noodles",          dinner: "Biryani"        },
-  { day: "Wednesday", breakfast: "Poha",             lunch: "Chana Masala",     dinner: "Dal Makhani"    },
-  { day: "Thursday",  breakfast: "Idli & Sambar",    lunch: "Rajma Rice",       dinner: "Pasta"          },
-  { day: "Friday",    breakfast: "Upma",             lunch: "Pulao",            dinner: "Chole Bhature"  },
-];
 
 const TH = ({ children }) => <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{children}</th>;
 const TD = ({ children }) => <td className="px-4 py-3 text-sm text-slate-700 border-t border-slate-100">{children}</td>;
@@ -90,6 +83,7 @@ const TD = ({ children }) => <td className="px-4 py-3 text-sm text-slate-700 bor
 export default function AdminDashboard() {
   const [active, setActive]       = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+
   const { user, logout }          = useAuth();
   const navigate                  = useNavigate();
 
@@ -141,7 +135,7 @@ export default function AdminDashboard() {
                 <tbody>
                   {usersData.map(u => (
                     <tr key={u.email} className="hover:bg-slate-50 transition">
-                      <TD><div className="flex items-center gap-2"><div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold">{u.name[0]}</div>{u.name}</div></TD>
+                      <TD><div className="flex items-center gap-2"><div className="w-7 h-7 text-white rounded-full flex items-center justify-center text-xs font-bold" style={{backgroundColor: "#14213d"}}>{u.name[0]}</div>{u.name}</div></TD>
                       <TD>{u.email}</TD>
                       <TD><Badge s={u.role === "admin" ? "Admin" : "Active"} /></TD>
                       <TD>{u.room}</TD>
@@ -227,26 +221,6 @@ export default function AdminDashboard() {
           <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
               <AdminFeedback isEmbedded={true} />
-            </div>
-          </div>
-        );
-
-      case "meals":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Weekly Meal Schedule</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Day</TH><TH>Breakfast</TH><TH>Lunch</TH><TH>Dinner</TH></tr></thead>
-                <tbody>
-                  {mealsData.map((m, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD><span className="font-bold text-indigo-700">{m.day}</span></TD>
-                      <TD>{m.breakfast}</TD><TD>{m.lunch}</TD><TD>{m.dinner}</TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         );
