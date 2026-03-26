@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authAPI } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../components/Toast";
 
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -10,6 +11,7 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +25,9 @@ export default function Login() {
     
     // Basic validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError("Please enter a valid email address.");
+      const errMsg = "Please enter a valid email address.";
+      setError(errMsg);
+      toast.error("Validation Error", errMsg);
       setLoading(false);
       return;
     }
@@ -31,14 +35,20 @@ export default function Login() {
     try {
       const response = await authAPI.login(formData);
       if (response.success) {
+        // Success toast
+        toast.success("Login Successful", `Welcome back, ${response.user.name}!`);
         // Pass both user data and token to login function
         login(response.user, response.token);
         navigate(response.user.role === "admin" ? "/admin-dashboard" : "/user-dashboard");
       } else {
-        setError(response.message || "Login failed");
+        const errMsg = response.message || "Login failed";
+        setError(errMsg);
+        toast.error("Login Failed", errMsg);
       }
     } catch (err) {
-      setError(err.message || "Cannot connect to server. Make sure the backend is running.");
+      const errMsg = err.message || "Cannot connect to server. Make sure the backend is running.";
+      setError(errMsg);
+      toast.error("Connection Error", errMsg);
     } finally {
       setLoading(false);
     }

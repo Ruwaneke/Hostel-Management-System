@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { authAPI } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../components/Toast";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,22 +28,27 @@ export default function Register() {
 
     // Validations
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError("Please enter a valid email address.");
+      const errMsg = "Please enter a valid email address.";
+      setError(errMsg);
+      toast.error("Validation Error", errMsg);
       return;
     }
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+      const errMsg = "Password must be at least 6 characters long.";
+      setError(errMsg);
+      toast.warning("Weak Password", errMsg);
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
+      const errMsg = "Passwords do not match.";
+      setError(errMsg);
+      toast.error("Password Mismatch", errMsg);
       return;
     }
 
     setLoading(true);
 
     try {
-      // Force role = student on backend; only send basic fields
       const response = await authAPI.register({
         name: formData.name,
         email: formData.email,
@@ -49,19 +56,22 @@ export default function Register() {
       });
 
       if (response.success) {
+        // Success toast
+        toast.success("Registration Successful", "Account created! Redirecting to login...");
         login(response.user, response.token);
-        // Only students are created from here
-        navigate("/login");
+        // Redirect to login after a brief delay so they see the toast
+        setTimeout(() => navigate("/login"), 1500);
       } else {
-        setError(response.message || "Registration failed");
+        const errMsg = response.message || "Registration failed";
+        setError(errMsg);
+        toast.error("Registration Failed", errMsg);
       }
     } catch (err) {
-      // Handle 409 Conflict (email already exists)
-      if (err.message && err.message.includes('already')) {
-        setError(err.message);
-      } else {
-        setError(err.message || "Cannot connect to server");
-      }
+      const errMsg = err.message && err.message.includes('already') 
+        ? err.message 
+        : err.message || "Cannot connect to server";
+      setError(errMsg);
+      toast.error("Registration Error", errMsg);
     } finally {
       setLoading(false);
     }
