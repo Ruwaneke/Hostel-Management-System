@@ -296,29 +296,49 @@ const addNotification = (complaint, message) => {
 
 export const submitComplaint = async (req, res) => {
     try {
-        const { category, description, imageUrl, priority } = req.body;
+        const { category, description, priority, title } = req.body;
 
-        const student = {
-            userId: req.user.userId,
-            name: req.user.name,
-            email: req.user.email,
-            roomNumber: req.user.roomNumber || req.body.roomNumber,
-            hostelBlock: req.user.hostelBlock || req.body.hostelBlock,
-        };
+        // Build image URL (if file uploaded)
+        let imageUrl = req.body.imageUrl || null;
+        if (req.file) {
+            imageUrl = `/uploads/${req.file.filename}`;
+        }
 
-        if (!student.roomNumber || !student.hostelBlock) {
+        // Get full user from DB so we see room allocation
+        const dbUser = await User.findById(req.user.id).select(
+            'userId name email roomNumber hostelBlock'
+        );
+
+        if (!dbUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Require that admin has already allocated a room
+        if (!dbUser.roomNumber || !dbUser.hostelBlock) {
             return res.status(400).json({
                 success: false,
-                message: "Room number and hostel block are required. Make sure your account has room details.",
+                message:
+                    'Room number and hostel block are required. Please wait until the admin allocates your room.'
             });
         }
 
         if (!category || !description || !priority) {
             return res.status(400).json({
                 success: false,
-                message: "category, description, and priority are required.",
+                message: 'category, description, and priority are required.'
             });
         }
+
+        const student = {
+            userId: dbUser.userId || String(dbUser._id),
+            name: dbUser.name,
+            email: dbUser.email,
+            roomNumber: dbUser.roomNumber,
+            hostelBlock: dbUser.hostelBlock
+        };
 
         const complaint = new Complaint({
             student,
@@ -326,22 +346,31 @@ export const submitComplaint = async (req, res) => {
             description,
             imageUrl: imageUrl || null,
             priority,
-            status: "Pending",
-            statusHistory: [{
-                status: "Pending",
-                changedBy: { userId: req.user.userId, name: req.user.name, role: req.user.role },
-                note: "Complaint submitted by student.",
-            }],
+            status: 'Pending',
+            statusHistory: [
+                {
+                    status: 'Pending',
+                    changedBy: {
+                        userId: student.userId,
+                        name: dbUser.name,
+                        role: req.user.role
+                    },
+                    note: 'Complaint submitted by student.'
+                }
+            ]
         });
 
-        addNotification(complaint, "Your complaint has been submitted successfully. We will review it shortly.");
+        addNotification(
+            complaint,
+            'Your complaint has been submitted successfully. We will review it shortly.'
+        );
         await complaint.save();
 
         res.status(201).json({
             success: true,
-            message: "Complaint submitted successfully.",
+            message: 'Complaint submitted successfully.',
             complaintId: complaint.complaintId,
-            data: complaint,
+            data: complaint
         });
     } catch (err) {
         res.status(500).json({ success: false, message: err.message });

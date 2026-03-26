@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import {User} from "../models/User.js";
 
 // ── Helper: Generate Token ─────────────────────────────────────────────────
 const generateToken = (user) => {
@@ -31,29 +31,15 @@ export const registerUser = async (req, res) => {
             });
         }
 
-        const { name, email, password, role, roomNumber, hostelBlock } = req.body;
-
-        if (!name || !email || !password || !role) {
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) {
             return res.status(400).json({
                 success: false,
-                message: "name, email, password, and role are required.",
+                message: "name, email, and password are required.",
             });
         }
 
-        const allowedRoles = ["student", "staff", "admin"];
-        if (!allowedRoles.includes(role)) {
-            return res.status(400).json({
-                success: false,
-                message: `Invalid role. Allowed: ${allowedRoles.join(", ")}`,
-            });
-        }
-
-        if (role === "student" && (!roomNumber || !hostelBlock)) {
-            return res.status(400).json({
-                success: false,
-                message: "roomNumber and hostelBlock are required for students.",
-            });
-        }
+       
 
         const existing = await User.findOne({ email: email.toLowerCase() });
         if (existing) {
@@ -68,9 +54,8 @@ export const registerUser = async (req, res) => {
             name,
             email,
             password,
-            role,
-            roomNumber: role === "student" ? roomNumber : null,
-            hostelBlock: role === "student" ? hostelBlock : null,
+            // role will default to 'student' from the schema
+            // roomNumber / hostelBlock will default to null
         });
 
         // Fetch fresh from DB to ensure userId is set by the pre-save hook

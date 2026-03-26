@@ -15,13 +15,13 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#e5e5e5]">
       <Navbar />
 
       {/* Header */}
-      <section className="bg-gradient-to-br from-indigo-700 to-blue-500 text-white py-16 text-center">
+      <section className="bg-[#14213d] text-white py-16 text-center">
         <h1 className="text-4xl font-extrabold mb-3">Contact Us</h1>
-        <p className="text-indigo-200 text-lg max-w-xl mx-auto">
+        <p className="text-gray-300 text-lg max-w-xl mx-auto">
           Have a question or need help? We're here for you.
         </p>
       </section>
@@ -30,7 +30,7 @@ export default function Contact() {
 
         {/* Info cards */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-slate-800 mb-6">Get in Touch</h2>
+          <h2 className="text-2xl font-bold text-black mb-6">Get in Touch</h2>
 
           {[
             { icon: '📧', title: 'Email Us', detail: 'support@hostelms.com', sub: 'We reply within 24 hours' },
@@ -38,14 +38,14 @@ export default function Contact() {
             { icon: '📍', title: 'Location', detail: 'Block A, University Campus', sub: 'Hostel Management Office' },
             { icon: '🕐', title: 'Office Hours', detail: 'Monday – Friday', sub: '9:00 AM – 6:00 PM' },
           ].map((item) => (
-            <div key={item.title} className="flex items-start gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+            <div key={item.title} className="flex items-start gap-4 bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+              <div className="w-12 h-12 bg-[#fca311]/10 text-[#14213d] rounded-xl flex items-center justify-center text-xl flex-shrink-0">
                 {item.icon}
               </div>
               <div>
-                <div className="font-semibold text-slate-800">{item.title}</div>
-                <div className="text-slate-700 text-sm mt-0.5">{item.detail}</div>
-                <div className="text-slate-400 text-xs mt-0.5">{item.sub}</div>
+                <div className="font-semibold text-black">{item.title}</div>
+                <div className="text-gray-700 text-sm mt-0.5">{item.detail}</div>
+                <div className="text-gray-500 text-xs mt-0.5">{item.sub}</div>
               </div>
             </div>
           ))}
@@ -81,24 +81,24 @@ export default function Contact() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Subject</label>
+              <label className="block text-sm font-semibold text-black mb-1">Subject</label>
               <input
                 type="text" name="subject" value={form.subject} onChange={handleChange} required
                 placeholder="What is this about?"
-                className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 transition text-sm"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#14213d] transition text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Message</label>
+              <label className="block text-sm font-semibold text-black mb-1">Message</label>
               <textarea
                 name="message" value={form.message} onChange={handleChange} required rows={5}
                 placeholder="Write your message here..."
-                className="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 transition text-sm resize-none"
+                className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-[#14213d] transition text-sm resize-none"
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition"
+              className="w-full bg-[#14213d] hover:bg-[#0f1824] text-white font-bold py-3 rounded-xl transition"
             >
               Send Message
             </button>
@@ -107,7 +107,7 @@ export default function Contact() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-slate-800 text-slate-400 py-8 text-center text-sm">
+      <footer className="bg-[#14213d] text-gray-400 py-8 text-center text-sm">
         © {new Date().getFullYear()} HostelMS. All rights reserved.
       </footer>
     </div>

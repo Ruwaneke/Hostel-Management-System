@@ -2,15 +2,14 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:5025/api';
 
-const getAuthHeader = () => {
+const getAuthHeader = (isFormData = false) => {
   const token = localStorage.getItem('token');
   if (!token) {
     throw { success: false, message: 'No authentication token found. Please login.' };
   }
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
+  const headers = { Authorization: `Bearer ${token}` };
+  if (!isFormData) headers['Content-Type'] = 'application/json';
+  return headers;
 };
 
 const handleAxiosError = (error) => {
@@ -33,7 +32,19 @@ const handleAxiosError = (error) => {
 export const complaintAPI = {
   createComplaint: async (data) => {
     try {
+      const isFormData = data instanceof FormData;
       const response = await axios.post(`${API_BASE_URL}/complaints`, data, {
+        headers: getAuthHeader(isFormData)
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  },
+
+  getMyComplaints: async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/complaints/my-complaints`, {
         headers: getAuthHeader()
       });
       return response.data;
@@ -42,9 +53,10 @@ export const complaintAPI = {
     }
   },
 
-  getComplaints: async () => {
+  getAllComplaints: async (params = {}) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/complaints`, {
+      const queryString = new URLSearchParams(params).toString();
+      const response = await axios.get(`${API_BASE_URL}/complaints/admin/all?${queryString}`, {
         headers: getAuthHeader()
       });
       return response.data;
@@ -64,9 +76,42 @@ export const complaintAPI = {
     }
   },
 
-  updateComplaint: async (id, data) => {
+  assignComplaint: async (id, data) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/complaints/${id}`, data, {
+      const response = await axios.put(`${API_BASE_URL}/complaints/${id}/assign`, data, {
+        headers: getAuthHeader()
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  },
+
+  updateProgress: async (id, data) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/complaints/${id}/progress`, data, {
+        headers: getAuthHeader()
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  },
+  
+  completeComplaint: async (id, data) => {
+    try {
+      const response = await axios.put(`${API_BASE_URL}/complaints/${id}/complete`, data, {
+        headers: getAuthHeader()
+      });
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error);
+    }
+  },
+
+  submitFeedback: async (id, data) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/complaints/${id}/feedback`, data, {
         headers: getAuthHeader()
       });
       return response.data;
@@ -77,18 +122,7 @@ export const complaintAPI = {
 
   deleteComplaint: async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/complaints/${id}`, {
-        headers: getAuthHeader()
-      });
-      return response.data;
-    } catch (error) {
-      handleAxiosError(error);
-    }
-  },
-
-  getComplaintsByStatus: async (status) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/complaints/status/${status}`, {
+      const response = await axios.delete(`${API_BASE_URL}/complaints/legacy/${id}`, {
         headers: getAuthHeader()
       });
       return response.data;

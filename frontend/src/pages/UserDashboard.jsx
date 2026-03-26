@@ -1,6 +1,8 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import UserComplaints from "./UserComplaints";
+import UserFeedback from "./UserFeedback";
 
 const menuItems = [
   { id: "overview",   label: "Overview",   icon: "" },
@@ -9,15 +11,17 @@ const menuItems = [
   { id: "laundry",    label: "Laundry",    icon: "" },
   { id: "complaints", label: "Complaints", icon: "" },
   { id: "meals",      label: "Meals",      icon: "" },
+  { id: "feedback",   label: "Feedback",   icon: "" },
+  { id: "contact",    label: "Contact",    icon: "" } // Added Contact to match your code
 ];
 
 const statusColor = {
-  Paid:      "bg-green-100 text-green-700",
-  Upcoming:  "bg-amber-100 text-amber-700",
-  Delivered: "bg-green-100 text-green-700",
-  Open:      "bg-red-100 text-red-700",
-  Resolved:  "bg-green-100 text-green-700",
-  Pending:   "bg-amber-100 text-amber-700",
+  Paid:      "bg-emerald-100 text-emerald-800",
+  Upcoming:  "bg-amber-100 text-amber-800",
+  Delivered: "bg-emerald-100 text-emerald-800",
+  Open:      "bg-rose-100 text-rose-700",
+  Resolved:  "bg-emerald-100 text-emerald-800",
+  Pending:   "bg-amber-100 text-amber-800",
 };
 
 const Badge = ({ s }) => (
@@ -29,20 +33,12 @@ const Badge = ({ s }) => (
 const TH = ({ children }) => <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{children}</th>;
 const TD = ({ children }) => <td className="px-4 py-3 text-sm text-slate-700 border-t border-slate-100">{children}</td>;
 
-const mealsData = [
-  { day: "Monday",    breakfast: "Oats & Milk",      lunch: "Rice & Dal",       dinner: "Roti & Paneer" },
-  { day: "Tuesday",   breakfast: "Bread & Eggs",     lunch: "Noodles",          dinner: "Biryani"       },
-  { day: "Wednesday", breakfast: "Poha",             lunch: "Chana Masala",     dinner: "Dal Makhani"   },
-  { day: "Thursday",  breakfast: "Idli & Sambar",    lunch: "Rajma Rice",       dinner: "Pasta"         },
-  { day: "Friday",    breakfast: "Upma",             lunch: "Pulao",            dinner: "Chole Bhature" },
-];
-
 export default function UserDashboard() {
   const [active, setActive]       = useState("overview");
   const [collapsed, setCollapsed] = useState(false);
-  const [complaint, setComplaint] = useState("");
   const [laundryItems, setLaundryItems] = useState("");
   const [submitted, setSubmitted] = useState({ complaint: false, laundry: false });
+
   const { user, logout }          = useAuth();
   const navigate                  = useNavigate();
 
@@ -52,32 +48,32 @@ export default function UserDashboard() {
     switch (active) {
       case "overview":
         return (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div>
-              <h2 className="text-xl font-bold text-slate-800">Welcome back, {user?.name}! </h2>
-              <p className="text-slate-400 text-sm mt-1">Here is your hostel summary for today.</p>
+              <h2 className="text-2xl font-black text-brand-navy tracking-tight">Welcome back, {user?.name}! ✨</h2>
+              <p className="text-slate-500 font-medium text-sm mt-1">Here is your hostel summary for today.</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { icon: "", value: "204",  label: "My Room",       color: "border-l-indigo-500", tc: "text-indigo-600", bg: "bg-indigo-50" },
-                { icon: "", value: "Paid", label: "March Fee",     color: "border-l-green-500",  tc: "text-green-600",  bg: "bg-green-50"  },
-                { icon: "", value: "3",    label: "Laundry Items", color: "border-l-cyan-500",   tc: "text-cyan-600",   bg: "bg-cyan-50"   },
-                { icon: "", value: "1",    label: "Open Ticket",   color: "border-l-amber-500",  tc: "text-amber-600",  bg: "bg-amber-50"  },
+                { icon: "🛏️", value: "204",  label: "My Room",       color: "border-brand-navy", tc: "text-brand-navy", bg: "bg-brand-navy/5" },
+                { icon: "💳", value: "Paid", label: "March Fee",     color: "border-emerald-500",  tc: "text-emerald-700",  bg: "bg-emerald-50"  },
+                { icon: "👕", value: "3",    label: "Laundry Items", color: "border-sky-500",   tc: "text-sky-700",   bg: "bg-sky-50"   },
+                { icon: "🔧", value: "1",    label: "Open Ticket",   color: "border-brand-gold",  tc: "text-[#e5920f]",  bg: "bg-brand-gold/10"  },
               ].map(s => (
-                <div key={s.label} className={"bg-white rounded-2xl shadow-sm border-l-4 p-5 " + s.color}>
-                  <div className={"w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-3 " + s.bg}>{s.icon}</div>
-                  <div className={"text-2xl font-extrabold " + s.tc}>{s.value}</div>
-                  <div className="text-slate-500 text-xs mt-1 font-medium">{s.label}</div>
+                <div key={s.label} className={"bg-brand-white rounded-3xl shadow-sm border-l-4 p-5 hover:shadow-md transition-shadow " + s.color}>
+                  <div className={"w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 " + s.bg}>{s.icon}</div>
+                  <div className={"text-3xl font-black " + s.tc}>{s.value}</div>
+                  <div className="text-slate-500 text-sm mt-1 font-semibold">{s.label}</div>
                 </div>
               ))}
             </div>
-            <div className="bg-white rounded-2xl shadow-sm p-5">
-              <h3 className="font-bold text-slate-800 mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[["","Raise Complaint","complaints"],["","Submit Laundry","laundry"],["","View Payments","payments"],["","Today's Meals","meals"]].map(([icon, label, id]) => (
+            <div className="bg-brand-white rounded-3xl shadow-sm p-6 border border-brand-platinum/30">
+              <h3 className="font-bold text-brand-navy mb-5 text-lg">Quick Actions</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[["🔧","Raise Complaint","complaints"],["👕","Submit Laundry","laundry"],["💳","View Payments","payments"],["🍽️","Today's Meals","meals"]].map(([icon, label, id]) => (
                   <button key={id} onClick={() => setActive(id)}
-                    className="flex flex-col items-center gap-2 py-4 px-3 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 rounded-xl text-sm font-medium text-slate-600 transition border border-slate-200 hover:border-indigo-200">
-                    <span className="text-xl">{icon}</span>
+                    className="flex flex-col items-center gap-3 py-5 px-3 bg-brand-platinum/10 hover:bg-brand-gold/10 hover:text-brand-navy rounded-2xl text-sm font-bold text-slate-600 transition-all border border-brand-platinum/50 hover:border-brand-gold/50 hover:shadow-md">
+                    <span className="text-2xl drop-shadow-sm">{icon}</span>
                     <span>{label}</span>
                   </button>
                 ))}
@@ -145,18 +141,18 @@ export default function UserDashboard() {
               <h3 className="font-bold text-slate-700 mb-4">Submit a Laundry Request</h3>
               {submitted.laundry ? (
                 <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm flex items-center gap-2">
-                  <span></span> Request submitted! Expected return: Tomorrow 5 PM
+                  Request submitted! Expected return: Tomorrow 5 PM
                 </div>
               ) : (
                 <div className="flex gap-3 flex-wrap">
                   <input
                     type="number" min="1" placeholder="Number of items"
                     value={laundryItems} onChange={e => setLaundryItems(e.target.value)}
-                    className="flex-1 min-w-0 px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 bg-slate-50"
+                    className="flex-1 min-w-0 px-5 py-3 border-2 border-brand-platinum rounded-xl text-sm font-medium focus:outline-none focus:border-brand-gold bg-brand-platinum/10 transition-colors"
                   />
                   <button
                     onClick={() => { if (laundryItems) setSubmitted(s => ({ ...s, laundry: true })); }}
-                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition"
+                    className="px-6 py-3 bg-brand-gold hover:bg-[#e5920f] text-brand-black text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg"
                   >
                     Submit Request
                   </button>
@@ -183,133 +179,121 @@ export default function UserDashboard() {
 
       case "complaints":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Complaints & Maintenance</h2>
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h3 className="font-bold text-slate-700 mb-4">Raise a New Complaint</h3>
-              {submitted.complaint ? (
-                <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm flex items-center gap-2">
-                  <span></span> Complaint submitted! Ticket #14 created. We will get back to you soon.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <textarea
-                    rows={3} placeholder="Describe your issue..."
-                    value={complaint} onChange={e => setComplaint(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 resize-none"
-                  />
-                  <button
-                    onClick={() => { if (complaint.trim()) setSubmitted(s => ({ ...s, complaint: true })); }}
-                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition"
-                  >
-                    Submit Complaint
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Issue</TH><TH>Date</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {[
-                    { issue: "Broken AC in room 204", date: "Mar 7",  status: "Open"     },
-                    { issue: "Leaking tap fixed",     date: "Feb 15", status: "Resolved" },
-                  ].map((c, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD>{c.issue}</TD><TD>{c.date}</TD><TD><Badge s={c.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
+              <UserComplaints isEmbedded={true} />
             </div>
           </div>
         );
 
+      case "feedback":
+        return (
+          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
+              <UserFeedback isEmbedded={true} />
+            </div>
+          </div>
+        );
+        
       case "meals":
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">This Week Meal Schedule</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50">
-                  <tr><TH>Day</TH><TH>Breakfast</TH><TH>Lunch</TH><TH>Dinner</TH></tr>
-                </thead>
-                <tbody>
-                  {mealsData.map((m, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD><span className="font-bold text-indigo-700">{m.day}</span></TD>
-                      <TD>{m.breakfast}</TD><TD>{m.lunch}</TD><TD>{m.dinner}</TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+           <div className="p-12 text-center bg-white rounded-3xl shadow-sm border border-brand-platinum/30">
+                 <span className="text-4xl mb-4 block">🍽️</span>
+                 <h2 className="text-xl font-bold text-brand-navy">Meals & Restaurants</h2>
+                 <p className="text-slate-500 mt-2">Module under development.</p>
+           </div>
+        );
+
+      case "contact":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Contact Administration</h2>
+              <p className="text-slate-400 text-sm mt-1">Get in touch with management & restaurant services</p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl p-6 text-white shadow-md">
+                  <h3 className="font-bold text-lg mb-4">Admin Contact Details</h3>
+                  <div className="space-y-4">
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Hostel Manager</p>
+                      <p className="text-lg font-bold">Mr. Rajesh Kumar</p>
+                      <p className="text-sm text-indigo-200 mt-1">📞 +91 9876543210</p>
+                      <p className="text-sm text-indigo-200">📧 rajesh.kumar@hostel.com</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
 
-      default: return null;
+      default: 
+        return null;
     }
   };
 
   return (
-    <div className="flex h-screen bg-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-brand-platinum/20 overflow-hidden text-brand-black">
       {/* Sidebar */}
-      <aside className={"flex flex-col bg-slate-800 text-white transition-all duration-300 " + (collapsed ? "w-16" : "w-56")}>
-        <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-700">
-          <span className="text-2xl flex-shrink-0"></span>
-          {!collapsed && <span className="font-extrabold text-lg">HostelMS</span>}
+      <aside className={"flex flex-col bg-brand-navy text-brand-platinum border-r border-brand-white/10 transition-all duration-300 relative z-20 shadow-2xl " + (collapsed ? "w-20" : "w-64")}>
+        <div className="flex items-center gap-3 px-6 py-6 border-b border-brand-white/10">
+          <span className="text-3xl flex-shrink-0 drop-shadow-sm">🏠</span>
+          {!collapsed && <span className="font-black text-xl text-brand-gold tracking-tight">HostelMS</span>}
         </div>
-        <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
+        <nav className="flex-1 py-6 space-y-2 px-3 overflow-y-auto custom-scrollbar">
           {menuItems.map(item => (
             <button
               key={item.id}
               onClick={() => setActive(item.id)}
               title={collapsed ? item.label : ""}
-              className={"w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all " +
+              className={"w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all " +
                 (active === item.id
-                  ? "bg-white text-slate-800 shadow"
-                  : "text-slate-300 hover:bg-slate-700 hover:text-white")}
+                  ? "bg-brand-gold text-brand-black shadow-lg shadow-brand-gold/20"
+                  : "text-brand-platinum/80 hover:bg-brand-white/5 hover:text-brand-gold")}
             >
-              <span className="text-base flex-shrink-0">{item.icon}</span>
+              <span className={"text-xl flex-shrink-0 " + (active !== item.id && "opacity-70")}>{"→"}</span>
               {!collapsed && <span>{item.label}</span>}
             </button>
           ))}
         </nav>
-        <div className="px-2 pb-4">
+        <div className="px-3 pb-6 border-t border-brand-white/10 pt-4">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-all"
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all"
           >
-            <span className="flex-shrink-0"></span>
+            <span className="flex-shrink-0 text-xl opacity-80">🚪</span>
             {!collapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setCollapsed(!collapsed)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition"></button>
+      {/* Main Area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-brand-platinum/10">
+        <header className="bg-brand-white border-b border-brand-platinum/50 px-8 py-4 flex items-center justify-between flex-shrink-0 relative z-10 shadow-sm">
+          <div className="flex items-center gap-5">
+            <button onClick={() => setCollapsed(!collapsed)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-brand-platinum/30 text-brand-navy transition-colors">
+              <span className="text-xl">☰</span>
+            </button>
             <div>
-              <h1 className="font-bold text-slate-800 text-sm">
-                {menuItems.find(m => m.id === active)?.icon}{" "}
+              <h1 className="font-extrabold text-brand-navy text-xl tracking-tight flex items-center gap-2">
                 {menuItems.find(m => m.id === active)?.label}
               </h1>
-              <p className="text-slate-400 text-xs">Student Portal</p>
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mt-0.5">Student Portal</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-slate-700">{user?.name}</p>
-              <p className="text-xs text-slate-400">Student</p>
+              <p className="text-sm font-black text-brand-navy">{user?.name || "Student"}</p>
+              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider">Student</p>
             </div>
-            <div className="w-9 h-9 bg-slate-700 text-white rounded-full flex items-center justify-center font-bold text-sm">
-              {user?.name?.charAt(0).toUpperCase()}
+            <div className="w-11 h-11 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-bold text-lg shadow-inner ring-2 ring-brand-platinum/50">
+              {user?.name?.charAt(0).toUpperCase() || "S"}
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-[#FBFBFE]">
           {renderContent()}
         </main>
       </div>

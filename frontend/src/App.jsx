@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -35,8 +36,8 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        
-        <Routes>
+        <ToastProvider>
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -89,13 +90,9 @@ function App() {
             }
           />
 
-          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-
-        {/* 3. SMART CHATBOT WRAPPER */}
-        <SmartChatbot />
-
+        </ToastProvider>
       </AuthProvider>
     </Router>
   );

@@ -4,7 +4,6 @@ import {
     login,
     getAllUsers,
     getUserById,
-    getUserByRole,
     updateUser,
     deleteUser
 } from '../controllers/authController.js';
@@ -19,7 +18,6 @@ router.post('/login', login);
 // Protected routes
 router.get('/users', protect, getAllUsers);
 router.get('/users/:id', protect, getUserById);
-router.get('/role/:role', protect, getUserByRole);
 router.put('/users/:id', protect, updateUser);
 router.delete('/users/:id', protect, adminOnly, deleteUser);
 
