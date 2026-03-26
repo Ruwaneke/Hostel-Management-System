@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import UserComplaints from "./UserComplaints";
 import UserFeedback from "./UserFeedback";
+import UserMenusView from "./UserMenusView";
 
 const menuItems = [
   { id: "overview",   label: "Overview",   icon: "" },
@@ -252,6 +253,9 @@ export default function UserDashboard() {
 
       case "complaints":
         return <UserComplaints isEmbedded={true} />;
+
+      case "meals":
+        return <UserMenusView isEmbedded={true} />;
 
       case "feedback":
         return <UserFeedback isEmbedded={true} />;

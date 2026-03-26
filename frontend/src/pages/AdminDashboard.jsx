@@ -216,6 +216,34 @@ export default function AdminDashboard() {
           </div>
         );
 
+      case "meals":
+        return (
+          <div className="space-y-6">
+            <div className="bg-brand-white rounded-3xl shadow-sm p-8 border border-brand-platinum/30">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-brand-black mb-2">🍽️ Meals Management</h2>
+                <p className="text-slate-600">Manage restaurants and food items</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  onClick={() => navigate('/admin/restaurants')}
+                  className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-300 hover:shadow-lg transition-all text-left"
+                >
+                  <h3 className="text-lg font-bold text-blue-900 mb-2">🏪 Manage Restaurants</h3>
+                  <p className="text-sm text-blue-700">Add, edit, and delete restaurants</p>
+                </button>
+                <button
+                  onClick={() => navigate('/admin/menus')}
+                  className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-300 hover:shadow-lg transition-all text-left"
+                >
+                  <h3 className="text-lg font-bold text-green-900 mb-2">🍲 View Menus</h3>
+                  <p className="text-sm text-green-700">Browse all restaurants and their food items</p>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
       case "feedback":
         return (
           <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
