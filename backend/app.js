@@ -48,7 +48,7 @@ app.use('/api/laundry', laundryRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/feedback', feedbackRoutes);
-app.use('/api/users', userRoutes); // For testing only, to be removed later
+app.use('/api/users', userRoutes); 
 // ── Error Handling ────────────────────────────────────────────────────────────
 
 // Error handling middleware

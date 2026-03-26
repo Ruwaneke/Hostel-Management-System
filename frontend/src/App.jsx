@@ -33,7 +33,7 @@ function App() {
           <Route
             path="/user-dashboard"
             element={
-              <ProtectedRoute requiredRole="student">
+              <ProtectedRoute requiredRole="user">
                 <UserDashboard />
               </ProtectedRoute>
             }
