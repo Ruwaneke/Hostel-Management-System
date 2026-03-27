@@ -74,9 +74,17 @@ export default function AdminDashboard() {
                  <p className="text-slate-500">Module under development.</p>
                </div>;
 
+      // --- ONLY THIS BLOCK WAS UPDATED TO MATCH YOUR DASHBOARD STYLE ---
       case "rooms":
       case "roomManage": 
-        return <RoomManage />;
+        return (
+          <div className="bg-white rounded-[2rem] shadow-sm overflow-hidden h-full flex flex-col border border-slate-100">
+            <div className="flex-1 overflow-y-auto">
+              <RoomManage />
+            </div>
+          </div>
+        );
+      // ----------------------------------------------------------------
 
       case "payments":
         return <div className="p-12 text-center bg-white rounded-3xl shadow-sm">

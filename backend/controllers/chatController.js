@@ -1,22 +1,33 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Room } from '../models/Room.js';
+import Room from '../models/Room.js';
 
 export const handleChat = async (req, res) => {
     try {
-        // Now we receive the message AND the chat history from React
         const { message, history } = req.body;
 
         if (!message) {
             return res.status(400).json({ success: false, reply: "Please say something!" });
         }
 
-        // Format the history so the AI can read it easily
         const chatContext = history 
             ? history.map(h => `${h.sender === 'user' ? 'Student' : 'AI'}: ${h.text}`).join('\n') 
             : "";
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        
+        // 🚀 THE FIX: Upgraded from the retired 1.5 model to the current active 2.5 model
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        // --- HARDCODED KNOWLEDGE BASE ---
+        const HOSTEL_RULES = `
+        Official Hostel Rules:
+        1. Payments must be settled before the 5th of every month.
+        2. Visitors are not allowed inside the rooms after 8:00 PM.
+        3. Students are responsible for furniture (Beds, Tables, Chairs).
+        4. Strictly no smoking or alcohol consumption on the premises.
+        5. Key money is non-refundable if the stay is less than 6 months.
+        6. Management reserves the right to inspect rooms for security.
+        `;
 
         // 1. extractionPrompt with Context
         const extractionPrompt = `
@@ -26,13 +37,10 @@ export const handleChat = async (req, res) => {
         Student's new message: "${message}"
 
         Based on the conversation and new message, determine if we need to search the database for a room right now.
-        Return ONLY a valid JSON object. Do not include markdown formatting or backticks.
-        Use these exact keys:
-        - "isSearch" (boolean: true if they are actively looking for a room, checking availability, or asking about prices. false if just chatting/greeting)
-        - "type" (string: "Single", "Double", "Triple", "Dormitory", or null)
+        Return ONLY a valid JSON object. Use these exact keys:
+        - "isSearch" (boolean: true if they are looking for rooms, checking availability, or asking about prices)
+        - "roomType" (string: "Single", "Double", "Triple", "Shared", or null)
         - "maxPrice" (number: max monthly fee, or null)
-        - "gender" (string: "Boy", "Girl", or null)
-        - "isAC" (boolean: true for AC, false for non-AC, null for any)
         `;
 
         const jsonResult = await model.generateContent(extractionPrompt);
@@ -50,50 +58,49 @@ export const handleChat = async (req, res) => {
 
         // 2. Search Database if needed
         if (searchParams.isSearch) {
-            let dbQuery = { status: "Available" }; 
-            if (searchParams.type) dbQuery.type = new RegExp(searchParams.type, 'i');
-            if (searchParams.maxPrice) dbQuery.price = { $lte: searchParams.maxPrice };
-            // Add gender/AC if your DB supports them!
+            let dbQuery = {}; 
+            if (searchParams.roomType) dbQuery.roomType = new RegExp(searchParams.roomType, 'i');
+            if (searchParams.maxPrice) dbQuery.monthlyFee = { $lte: searchParams.maxPrice };
 
-            foundRooms = await Room.find(dbQuery).limit(3);
+            const allRooms = await Room.find(dbQuery);
+            foundRooms = allRooms.filter(room => room.capacity > room.bookedStudents.length).slice(0, 3);
 
             replyPrompt = `
-            IMPORTANT RULES:
-            1. You are a Student Hostel Assistant (for long-term semesters/months). NEVER say "for tonight" or act like a hotel.
-            2. If the student asks you to speak Sinhala, you MUST reply entirely in Sinhala.
-            3. If a room says "Any" gender, just say "suitable for you". Don't use robotic terms like 'Any gender room'.
+            ${HOSTEL_RULES}
+            
+            IMPORTANT RULES FOR YOUR REPLY:
+            1. You are a Student Hostel Assistant.
+            2. If rooms are found, list them neatly. Include Block, Room Number, Type, Monthly Fee, Key Money, and if it has AC or not. Mention the furniture (beds/tables/chairs).
+            3. Answer any questions about rules using the Official Hostel Rules provided above.
+            4. If the student asks you to speak Sinhala, you MUST reply entirely in Sinhala.
 
             Recent Conversation:
             ${chatContext}
             Student's message: "${message}"
             
             Database Results: ${JSON.stringify(foundRooms)}
-            
-            Write a helpful, natural reply to the student. If rooms are found, list the room number, type, and monthly fee clearly. If none found, say so politely.
             `;
         } else {
-            // 3. Conversational Prompt (with memory)
+            // 3. Conversational Prompt (with memory and rules)
             replyPrompt = `
-            IMPORTANT RULES:
-            1. You are a Student Hostel Assistant. Do not act like a nightly hotel.
-            2. If the student asks you to speak Sinhala, you MUST reply entirely in Sinhala.
-            3. Read the conversation history to understand context (e.g., if they ask a follow-up question about a room you just showed them).
+            ${HOSTEL_RULES}
+
+            IMPORTANT RULES FOR YOUR REPLY:
+            1. You are a Student Hostel Assistant.
+            2. Answer any questions about the hostel rules accurately using the Official Hostel Rules provided above.
+            3. Keep your tone friendly, helpful, and concise.
+            4. If the student asks you to speak Sinhala, you MUST reply entirely in Sinhala.
 
             Recent Conversation:
             ${chatContext}
             Student's message: "${message}"
-            
-            Write a natural, helpful reply based on the context. Keep it short.
             `;
         }
 
         const finalResult = await model.generateContent(replyPrompt);
         const finalReply = finalResult.response.text();
 
-        res.status(200).json({
-            success: true,
-            reply: finalReply
-        });
+        res.status(200).json({ success: true, reply: finalReply });
 
     } catch (error) {
         console.error("Chat Error:", error);

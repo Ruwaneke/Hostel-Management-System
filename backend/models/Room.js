@@ -1,31 +1,75 @@
 import mongoose from 'mongoose';
 
 const roomSchema = new mongoose.Schema({
-  roomNumber: { type: String, required: true, unique: true, trim: true },
-  floorLevel: { type: String, required: true },
-  roomType: { type: String, required: true, enum: ['Single', 'Double', 'Triple', 'Dormitory'] },
-  designatedGender: { type: String, required: true, enum: ['Male', 'Female', 'Co-ed', 'Any'] },
-  
-  // New Inventory Details
-  bedCount: { type: Number, required: true, min: 1, default: 1 },
-  chairCount: { type: Number, required: true, min: 0, default: 1 },
-  
-  airConditioning: { type: String, required: true, enum: ['AC', 'Non-AC'] },
-  bathroomType: { type: String, required: true, enum: ['Attached', 'Common'] },
-  furnishing: [{ type: String }], 
-  hasBalcony: { type: Boolean, default: false },
-  
-  monthlyRent: { type: Number, required: true, min: 0 },
-  keyMoney: { type: Number, required: true, min: 0 },
-  maxCapacity: { type: Number, required: true, min: 1 },
-  currentOccupancy: { type: Number, default: 0 },
-  
-  description: { type: String, maxLength: 500 },
-  images: [{ type: String }], 
-  status: { type: String, default: 'Available', enum: ['Available', 'Full', 'Under Maintenance'] },
-  
-  // Show or Hide this room from students
-  display: { type: Boolean, default: true }, 
+  block: {
+    type: String,
+    enum: ['A', 'B', 'C', 'D'],
+    required: [true, 'Block is required']
+  },
+  roomNumber: {
+    type: Number, 
+    required: [true, 'Room number is required'],
+    unique: true
+  },
+  roomType: {
+    type: String,
+    enum: ['Single', 'Double', 'Triple', 'Shared'],
+    required: [true, 'Room type is required']
+  },
+  capacity: {
+    type: Number,
+    required: [true, 'Room capacity is required'],
+    min: [1, 'Capacity must be at least 1']
+  },
+  isAC: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  beds: {
+    type: Number,
+    required: [true, 'Number of beds is required'],
+    min: [1, 'A room must have at least 1 bed']
+  },
+  tables: {
+    type: Number,
+    required: [true, 'Number of tables is required'],
+    min: [0, 'Cannot be negative']
+  },
+  chairs: {
+    type: Number,
+    required: [true, 'Number of chairs is required'],
+    min: [0, 'Cannot be negative']
+  },
+  features: {
+    type: [String], 
+    default: [] 
+  },
+  photos: {
+    type: [String], 
+    required: [true, 'Please upload at least one room photo']
+  },
+  keyMoney: {
+    type: Number,
+    required: [true, 'Key money amount is required'],
+    min: [0, 'Key money cannot be negative']
+  },
+  monthlyFee: {
+    type: Number,
+    required: [true, 'Monthly fee amount is required'],
+    min: [0, 'Monthly fee cannot be negative']
+  },
+  // FIXED: Changed from ObjectId to String to support storing student emails
+  bookedStudents: [{
+    type: String 
+  }]
 }, { timestamps: true });
 
-export const Room = mongoose.model('Room', roomSchema);
+roomSchema.virtual('availableSlots').get(function() {
+  return this.capacity - this.bookedStudents.length;
+});
+
+roomSchema.set('toJSON', { virtuals: true });
+
+const Room = mongoose.model('Room', roomSchema);
+export default Room;
