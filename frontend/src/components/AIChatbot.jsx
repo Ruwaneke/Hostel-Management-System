@@ -59,11 +59,15 @@ export default function AIChatbot() {
     <div className="fixed bottom-6 right-6 z-[9999] font-sans">
       {/* Chat Bubble Button */}
       {!isOpen && (
-        <button 
+        <button
           onClick={() => setIsOpen(true)}
-          className="bg-blue-600 text-white w-16 h-16 rounded-full shadow-lg shadow-blue-600/30 flex items-center justify-center text-3xl hover:bg-blue-700 transition-all duration-300 hover:scale-105 active:scale-95"
+          className="relative bg-blue-600 text-white w-16 h-16 rounded-full shadow-lg shadow-blue-600/30 flex items-center justify-center hover:bg-blue-700 transition-all duration-300 hover:scale-105 active:scale-95"
+          aria-label="Open chat"
         >
-          <span className="animate-bounce-short">💬</span>
+          <span className="absolute -inset-1 rounded-full bg-blue-500 opacity-30 animate-ping-slow" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-7 h-7 z-10 stroke-white">
+            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h6M21 12c0 4.418-4.03 8-9 8a9.62 9.62 0 01-4-.84L3 20l1.06-3.94A8.5 8.5 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
         </button>
       )}
 
@@ -75,7 +79,9 @@ export default function AIChatbot() {
           <div className="bg-blue-600 px-5 py-4 flex justify-between items-center shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl backdrop-blur-md border border-white/20">
-                🤖
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white">
+                  <path d="M12 2a2 2 0 00-2 2v1H8a2 2 0 00-2 2v2H4v6h2v2a2 2 0 002 2h6a2 2 0 002-2v-2h2v-6h-2V7a2 2 0 00-2-2h-2V4a2 2 0 00-2-2zM9 9h6v2H9V9zm0 4h6v2H9v-2z" />
+                </svg>
               </div>
               <div>
                 <h3 className="text-white font-extrabold text-sm tracking-wide">Hostel AI Guide</h3>

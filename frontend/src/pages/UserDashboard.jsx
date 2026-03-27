@@ -35,11 +35,11 @@ const Badge = ({ s }) => (
 );
 
 const TH = ({ children }) => <th className="px-4 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">{children}</th>;
-const TD = ({ children }) => <td className="px-4 py-4 text-sm font-medium text-slate-700 border-t border-slate-100">{children}</td>;
+const TD = ({ children }) => <td className="px-4 py-4 text-sm font-bold text-slate-800 border-t border-slate-100">{children}</td>;
 
 export default function UserDashboard() {
   const [active, setActive]       = useState("overview");
-  const [dropdownOpen, setDropdownOpen] = useState(false); // Controls the profile dropdown
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [submitted, setSubmitted] = useState({ complaint: false, laundry: false });
 
   const { user, logout }          = useAuth();
@@ -109,32 +109,41 @@ export default function UserDashboard() {
     switch (active) {
       case "overview":
         return (
-          <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto pt-4">
-            <div>
-              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Welcome back, {user?.name}! ✨</h2>
-              <p className="text-slate-500 font-medium text-sm mt-1">Here is your hostel summary for today.</p>
+          <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pt-4">
+            
+            {/* ── DARK BLUE WELCOME BANNER ── */}
+            <div className="bg-gradient-to-r from-blue-950 to-blue-800 rounded-[2rem] p-8 md:p-10 shadow-lg text-white flex justify-between items-center relative overflow-hidden border border-blue-900">
+              <div className="relative z-10">
+                <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">Welcome back, {user?.name}! ✨</h2>
+                <p className="text-blue-200 font-medium text-sm md:text-base">Here is your daily hostel summary and quick actions.</p>
+              </div>
+              <div className="text-8xl md:text-9xl absolute -right-6 -top-10 opacity-10 pointer-events-none select-none">🎓</div>
             </div>
+
+            {/* ── LIGHT BLUE TINTED STATS CARDS ── */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {[
-                { icon: "🛏️", value: myBooking ? myBooking.roomNumber : "None",  label: "My Room",       tc: "text-blue-600", bg: "bg-blue-50" },
-                { icon: "💳", value: myBooking?.monthlyRentStatus || "N/A", label: "Rent Status",   tc: "text-emerald-600",  bg: "bg-emerald-50"  },
-                { icon: "👕", value: "3",    label: "Laundry Items",  tc: "text-sky-600",   bg: "bg-sky-50"   },
-                { icon: "🔧", value: "1",    label: "Open Ticket",    tc: "text-amber-600",  bg: "bg-amber-50"  },
+                { icon: "🛏️", value: myBooking ? myBooking.roomNumber : "None",  label: "My Room",       tc: "text-blue-900", bg: "bg-blue-100", border: "border-blue-200" },
+                { icon: "💳", value: myBooking?.monthlyRentStatus || "N/A", label: "Rent Status",   tc: "text-emerald-700",  bg: "bg-emerald-100", border: "border-emerald-200"  },
+                { icon: "👕", value: "3",    label: "Laundry Items",  tc: "text-sky-700",   bg: "bg-sky-100", border: "border-sky-200"   },
+                { icon: "🔧", value: "1",    label: "Open Ticket",    tc: "text-amber-700",  bg: "bg-amber-100", border: "border-amber-200"  },
               ].map(s => (
-                <div key={s.label} className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition-shadow flex flex-col">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4 ${s.bg}`}>{s.icon}</div>
-                  <div className={`text-3xl font-black mb-1 ${s.tc}`}>{s.value}</div>
-                  <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">{s.label}</div>
+                <div key={s.label} className={`bg-gradient-to-br from-white to-slate-50/50 rounded-3xl shadow-sm border ${s.border} p-6 hover:shadow-md transition-all hover:-translate-y-1 flex flex-col`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4 shadow-sm ${s.bg}`}>{s.icon}</div>
+                  <div className={`text-3xl font-black mb-1 tracking-tight ${s.tc}`}>{s.value}</div>
+                  <div className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">{s.label}</div>
                 </div>
               ))}
             </div>
-            <div className="bg-white rounded-3xl shadow-sm p-8 border border-slate-100">
+
+            {/* ── QUICK ACTIONS ── */}
+            <div className="bg-white rounded-3xl shadow-sm p-8 border border-slate-200">
               <h3 className="font-extrabold text-slate-800 mb-6 text-lg tracking-tight">Quick Actions</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[["🔧","Raise Complaint","complaints"],["👕","Submit Laundry","laundry"],["💳","View Payments","payments"],["🍽️","Today's Meals","meals"]].map(([icon, label, id]) => (
                   <button key={id} onClick={() => setActive(id)}
-                    className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-50 hover:bg-blue-50 rounded-2xl text-xs font-bold text-slate-600 hover:text-blue-600 transition-all border border-slate-100 hover:border-blue-100 shadow-sm hover:shadow">
-                    <span className="text-2xl">{icon}</span>
+                    className="flex flex-col items-center justify-center gap-3 p-6 bg-slate-50 hover:bg-blue-50 rounded-2xl text-xs font-bold text-slate-600 hover:text-blue-700 transition-all border border-slate-100 hover:border-blue-200 shadow-sm hover:shadow group">
+                    <span className="text-3xl group-hover:scale-110 transition-transform">{icon}</span>
                     <span>{label}</span>
                   </button>
                 ))}
@@ -167,10 +176,10 @@ export default function UserDashboard() {
 
         return (
           <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto pt-4">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-8 rounded-3xl shadow-sm border border-slate-100 gap-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-8 rounded-3xl shadow-sm border border-slate-200 gap-4">
                 <div>
                     <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">My Assigned Room</h2>
-                    <p className="text-slate-400 font-medium mt-1">Official Residency Details</p>
+                    <p className="text-slate-500 font-medium mt-1">Official Residency Details</p>
                 </div>
                 <div className="flex flex-col items-start sm:items-end gap-2">
                     <Badge s={myBooking.status} />
@@ -179,15 +188,15 @@ export default function UserDashboard() {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100 flex flex-col">
+                <div className="xl:col-span-2 bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-200 flex flex-col">
                     <div className="relative p-8 md:p-10 text-white flex justify-between items-end min-h-[260px] overflow-hidden">
                         {roomPhotoUrl ? (
                             <>
                                 <img src={roomPhotoUrl} alt="Room" className="absolute inset-0 w-full h-full object-cover z-0" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent z-10"></div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-blue-950 via-blue-900/60 to-transparent z-10"></div>
                             </>
                         ) : (
-                            <div className="absolute inset-0 bg-blue-600 z-0"></div>
+                            <div className="absolute inset-0 bg-blue-800 z-0"></div>
                         )}
                         <div className="relative z-20 flex w-full justify-between items-end">
                             <div>
@@ -214,24 +223,41 @@ export default function UserDashboard() {
                         </div>
                     </div>
 
-                    <div className="p-8 md:p-10 grid grid-cols-1 sm:grid-cols-2 gap-8 flex-grow">
+                    <div className="p-8 md:p-10 grid grid-cols-1 sm:grid-cols-2 gap-8 flex-grow border-b border-slate-100">
                         <div className="space-y-8">
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-xl shadow-sm">📅</div>
+                                <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-xl shadow-sm">📅</div>
                                 <div><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Move-in Date</p><p className="text-lg font-black text-slate-800">{new Date(myBooking.expectedMoveInDate).toLocaleDateString()}</p></div>
                             </div>
                             <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-xl shadow-sm">💳</div>
+                                <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-xl shadow-sm">💳</div>
                                 <div><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">NIC Number</p><p className="text-lg font-black text-slate-800">{myBooking.nicNumber}</p></div>
                             </div>
                         </div>
-                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 h-full flex flex-col">
+                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 h-full flex flex-col">
                             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-200 pb-3"><span className="w-2 h-2 bg-rose-400 rounded-full"></span> Emergency Contact</h4>
                             <p className="text-lg font-bold text-slate-800 mb-1">{myBooking.emergencyContactName}</p>
                             <p className="text-sm font-bold text-slate-500 mb-4 flex items-center gap-2">📞 {myBooking.emergencyContactPhone}</p>
                             <div className="mt-auto pt-4 border-t border-slate-200 text-xs font-medium text-slate-500 italic">"{myBooking.specialRequests || 'No special requests submitted'}"</div>
                         </div>
                     </div>
+
+                    {/* DIGITAL PASS SECTION (Only shows when Paid) */}
+                    {myBooking.paymentStatus === 'Paid' && (
+                      <div className="p-8 md:p-10 bg-blue-50/50 flex flex-col sm:flex-row items-center gap-8">
+                        <div className="w-32 h-32 bg-white rounded-2xl border-4 border-blue-100 shadow-md p-2 flex-shrink-0 relative overflow-hidden">
+                           {/* Simulated QR Code for visual flair */}
+                           <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${myBooking._id}`} alt="QR Pass" className="w-full h-full object-contain" />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-extrabold text-blue-950 mb-2">Digital Resident Pass</h4>
+                          <p className="text-sm text-slate-500 font-medium mb-4 leading-relaxed">Your payment is complete and your room is active. Present this QR code at the security desk upon arrival for fast check-in.</p>
+                          <Link to={`/payment-receipt?booking_id=${myBooking._id}`} className="inline-block bg-white border border-blue-200 text-blue-700 font-bold px-6 py-2.5 rounded-xl shadow-sm hover:bg-blue-50 transition-colors text-sm">
+                            Download Official Receipt
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="p-6 bg-slate-50 border-t border-slate-100 md:hidden">
                         {myBooking.paymentStatus === 'Unpaid' ? (
@@ -244,26 +270,26 @@ export default function UserDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 flex flex-col">
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 flex flex-col">
                     <h3 className="text-lg font-extrabold text-slate-900 mb-6 tracking-tight">Finance Overview</h3>
                     <div className="space-y-4 flex-grow">
                         {myBooking.paymentStatus === 'Paid' && (
-                        <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-200">
                           <div><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Deposit</p><p className="font-bold text-slate-700 text-sm">Key Money</p></div>
                           <Badge s={myBooking.paymentStatus} />
                         </div>
                         )}
-                        <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-200">
                             <div><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Current</p><p className="font-bold text-slate-700 text-sm">Room Rent</p></div>
                             <Badge s={myBooking.monthlyRentStatus} />
                         </div>
                         
-                        <div className="mt-8 pt-6 border-t border-slate-100">
+                        <div className="mt-8 pt-6 border-t border-slate-200">
                             <p className="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest">Pricing Breakdown</p>
                             <div className="space-y-3">
                                 <div className="flex justify-between text-sm font-bold text-slate-500"><span>Monthly Base:</span><span>Rs. {myBooking.roomId?.monthlyFee?.toLocaleString()}</span></div>
-                                <div className="flex justify-between text-sm font-bold text-slate-500"><span>Maintenance:</span><span className="text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded text-xs">Included</span></div>
-                                <div className="flex justify-between text-lg font-black text-slate-900 mt-6 pt-4 border-t border-slate-100"><span>Total/Mo:</span><span className="text-blue-600">Rs. {myBooking.roomId?.monthlyFee?.toLocaleString()}</span></div>
+                                <div className="flex justify-between text-sm font-bold text-slate-500"><span>Maintenance:</span><span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-xs border border-emerald-200">Included</span></div>
+                                <div className="flex justify-between text-lg font-black text-slate-900 mt-6 pt-4 border-t border-slate-200"><span>Total/Mo:</span><span className="text-blue-600">Rs. {myBooking.roomId?.monthlyFee?.toLocaleString()}</span></div>
                             </div>
                         </div>
                     </div>
@@ -279,7 +305,7 @@ export default function UserDashboard() {
                 <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Payment History</h2>
                 <p className="text-slate-500 font-medium text-sm mt-1">Track your invoices and download receipts.</p>
             </div>
-            <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100">
+            <div className="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-200">
               {!myBooking ? (
                 <div className="p-16 text-center text-slate-400 font-medium flex flex-col items-center"><span className="text-4xl mb-3">🧾</span>No active bookings found.</div>
               ) : (
@@ -296,7 +322,7 @@ export default function UserDashboard() {
                         <TD><Badge s={myBooking.paymentStatus} /></TD>
                         <TD>
                             {myBooking.paymentStatus === 'Paid' ? (
-                                <Link to={`/payment-receipt?booking_id=${myBooking._id}`} className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors inline-block">Receipt</Link>
+                                <Link to={`/payment-receipt?booking_id=${myBooking._id}`} className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors inline-block shadow-sm">Receipt</Link>
                             ) : (
                                 <button onClick={handleStripePayment} className="text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">Pay Now</button>
                             )}
@@ -310,8 +336,8 @@ export default function UserDashboard() {
                                 <TD><Badge s={myBooking.monthlyRentStatus} /></TD>
                                 <TD>
                                     {myBooking.monthlyRentStatus === 'Unpaid' ? (
-                                        <button onClick={handleStripePayment} className="text-xs font-bold text-white bg-rose-500 px-4 py-2 rounded-lg hover:bg-rose-600 shadow-sm transition-colors">Pay Rent</button>
-                                    ) : <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded border border-emerald-100">Settled</span>}
+                                        <button onClick={handleStripePayment} className="text-xs font-bold text-white bg-rose-500 px-4 py-2 rounded-lg hover:bg-rose-600 shadow-sm transition-colors border border-rose-600">Pay Rent</button>
+                                    ) : <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded border border-emerald-200">Settled</span>}
                                 </TD>
                             </tr>
                         )}
@@ -323,17 +349,17 @@ export default function UserDashboard() {
           </div>
         );
 
-      case "laundry": return <div className="p-10 bg-white rounded-3xl border border-slate-100 shadow-sm max-w-7xl mx-auto pt-4"><h2 className="text-2xl font-extrabold text-slate-900">Laundry Module</h2><p className="text-slate-500 mt-2 font-medium">Historical logs for laundry collections.</p></div>;
-      case "complaints": return <div className="p-8 bg-white rounded-3xl border border-slate-100 shadow-sm h-full overflow-y-auto custom-scrollbar max-w-7xl mx-auto mt-4"><UserComplaints isEmbedded={true} /></div>;
-      case "feedback": return <div className="p-8 bg-white rounded-3xl border border-slate-100 shadow-sm h-full overflow-y-auto custom-scrollbar max-w-7xl mx-auto mt-4"><UserFeedback isEmbedded={true} /></div>;
-      case "meals": return <div className="p-20 text-center bg-white rounded-3xl shadow-sm border border-slate-100 max-w-7xl mx-auto mt-4"><span className="text-5xl mb-6 block opacity-50">🍽️</span><h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Meals & Restaurants</h2><p className="text-slate-400 mt-2 font-medium">Module under development.</p></div>;
-      case "contact": return <div className="p-10 bg-white rounded-3xl border border-slate-100 shadow-sm max-w-7xl mx-auto mt-4"><h2 className="text-2xl font-extrabold text-slate-900 mb-6">Administration Contact</h2><div className="p-6 bg-blue-50 border border-blue-100 rounded-2xl text-blue-800 font-bold flex items-center gap-4"><span className="text-2xl">📞</span> Manager Hotline: +94 11 234 5678</div></div>;
+      case "laundry": return <div className="p-10 bg-white rounded-3xl border border-slate-200 shadow-sm max-w-7xl mx-auto pt-4"><h2 className="text-2xl font-extrabold text-slate-900">Laundry Module</h2><p className="text-slate-500 mt-2 font-medium">Historical logs for laundry collections.</p></div>;
+      case "complaints": return <div className="p-8 bg-white rounded-3xl border border-slate-200 shadow-sm h-full overflow-y-auto custom-scrollbar max-w-7xl mx-auto mt-4"><UserComplaints isEmbedded={true} /></div>;
+      case "feedback": return <div className="p-8 bg-white rounded-3xl border border-slate-200 shadow-sm h-full overflow-y-auto custom-scrollbar max-w-7xl mx-auto mt-4"><UserFeedback isEmbedded={true} /></div>;
+      case "meals": return <div className="p-20 text-center bg-white rounded-3xl shadow-sm border border-slate-200 max-w-7xl mx-auto mt-4"><span className="text-5xl mb-6 block opacity-50">🍽️</span><h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Meals & Restaurants</h2><p className="text-slate-400 mt-2 font-medium">Module under development.</p></div>;
+      case "contact": return <div className="p-10 bg-white rounded-3xl border border-slate-200 shadow-sm max-w-7xl mx-auto mt-4"><h2 className="text-2xl font-extrabold text-slate-900 mb-6">Administration Contact</h2><div className="p-6 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 font-bold flex items-center gap-4"><span className="text-2xl">📞</span> Manager Hotline: +94 11 234 5678</div></div>;
       default: return null;
     }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#FAFAFA] font-sans selection:bg-blue-100 selection:text-blue-900 overflow-hidden relative">
+    <div className="flex flex-col h-screen bg-[#FAFAFA000000] font-sans selection:bg-blue-100 selection:text-blue-900 overflow-hidden relative">
       
       {/* ── TOP NAVBAR ── */}
       <header className="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 shadow-sm flex-shrink-0">
@@ -373,46 +399,25 @@ export default function UserDashboard() {
               {/* DROPDOWN MENU PANEL */}
               {dropdownOpen && (
                 <>
-                  {/* Invisible overlay to close dropdown when clicking outside */}
                   <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)}></div>
-                  
                   <div className="absolute right-0 mt-3 w-72 bg-white rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-100 py-3 animate-in slide-in-from-top-2 duration-200 z-50">
                     
-                    {/* Mobile Only: User Info inside dropdown */}
                     <div className="sm:hidden px-6 py-4 border-b border-slate-100 mb-2">
                         <p className="text-base font-bold text-slate-800">{user?.name || "Student"}</p>
                         <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">{user?.email || "Resident Portal"}</p>
                     </div>
 
-                    {/* Home Link */}
-                    <Link 
-                        to="/" 
-                        onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-4 px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors"
-                    >
+                    <Link to="/" onClick={() => setDropdownOpen(false)} className="flex items-center gap-4 px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors">
                         <span className="text-xl">🏠</span> Go to Homepage
                     </Link>
 
                     <div className="h-px bg-slate-100 my-2 mx-4"></div>
 
-                    {/* All Dashboard Navigation Links */}
                     <div className="max-h-[50vh] overflow-y-auto custom-scrollbar">
                         {menuItems.map(item => {
                             const isActive = active === item.id;
                             return (
-                                <button
-                                key={item.id}
-                                onClick={() => { 
-                                    setActive(item.id); 
-                                    setSelectedRoomToBook(null); 
-                                    setDropdownOpen(false); 
-                                }}
-                                className={`w-full flex items-center gap-4 px-6 py-3 text-sm transition-colors ${
-                                    isActive
-                                    ? "bg-blue-50 text-blue-700 font-bold border-l-4 border-blue-500"
-                                    : "text-slate-600 font-medium hover:bg-slate-50 border-l-4 border-transparent"
-                                }`}
-                                >
+                                <button key={item.id} onClick={() => { setActive(item.id); setSelectedRoomToBook(null); setDropdownOpen(false); }} className={`w-full flex items-center gap-4 px-6 py-3 text-sm transition-colors ${isActive ? "bg-blue-50 text-blue-700 font-bold border-l-4 border-blue-500" : "text-slate-600 font-medium hover:bg-slate-50 border-l-4 border-transparent"}`}>
                                 <span className={`text-xl flex-shrink-0 ${isActive ? "opacity-100" : "opacity-70 grayscale"}`}>{item.icon}</span>
                                 <span>{item.label}</span>
                                 </button>
@@ -422,11 +427,7 @@ export default function UserDashboard() {
 
                     <div className="h-px bg-slate-100 my-2 mx-4"></div>
 
-                    {/* Logout Button */}
-                    <button 
-                        onClick={() => { setDropdownOpen(false); handleLogout(); }} 
-                        className="w-full flex items-center gap-4 px-6 py-3 text-sm font-bold text-rose-500 hover:bg-rose-50 transition-colors"
-                    >
+                    <button onClick={() => { setDropdownOpen(false); handleLogout(); }} className="w-full flex items-center gap-4 px-6 py-3 text-sm font-bold text-rose-500 hover:bg-rose-50 transition-colors">
                         <span className="text-xl">🚪</span> Logout Securely
                     </button>
                   </div>
@@ -439,7 +440,7 @@ export default function UserDashboard() {
       </header>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#FAFAFA] custom-scrollbar relative z-0">
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#E5E5E5] custom-scrollbar relative z-0">
         {renderContent()}
       </main>
 

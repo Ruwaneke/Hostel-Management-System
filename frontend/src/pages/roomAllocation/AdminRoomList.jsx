@@ -55,7 +55,7 @@ export default function AdminRoomList() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Room Inventory</h1>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">All Rooms</h1>
           <p className="text-sm text-gray-500 font-medium">Monitoring hostel accommodation units.</p>
         </div>
         <div className="flex gap-4">

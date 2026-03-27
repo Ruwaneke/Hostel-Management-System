@@ -11,8 +11,8 @@ const bookingSchema = new mongoose.Schema({
   nicNumber: { 
     type: String, 
     required: [true, 'NIC Number is required'],
-    // Regex for Sri Lankan NIC: either 9 digits followed by v/V, or exactly 12 digits
-    match: [/^([0-9]{9}[vV]|[0-9]{12})$/, 'Please enter a valid NIC (e.g., 123456789V or 200112345678)']
+    // Regex for Sri Lankan NIC: either 10 digits followed by v/V, or exactly 12 digits
+    match: [/^([0-9]{10}[vV]|[0-9]{12})$/, 'Please enter a valid NIC (e.g., 123456789V or 200112345678)']
   },
   emergencyContactName: { type: String, required: true },
   emergencyContactPhone: { 

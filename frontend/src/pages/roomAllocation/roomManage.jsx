@@ -3,41 +3,37 @@ import AdminRoomList from './AdminRoomList';
 import AddRoom from './AddRoom';
 
 export default function RoomManage() {
-  const [activeTab, setActiveTab] = useState('list');
+  // State to control whether the popup is open or closed
+  const [isAddingRoom, setIsAddingRoom] = useState(false);
 
   return (
     <div className="flex flex-col h-full bg-[#FAFAFA] relative">
       
-      {/* Minimal, Space-Saving Navigation Tabs */}
-      <div className="pt-6 pb-2 px-6 flex justify-center sticky top-0 z-20 bg-[#FAFAFA]/80 backdrop-blur-md border-b border-transparent transition-all">
-        <div className="flex bg-slate-200/50 p-1.5 rounded-xl border border-slate-200/60 shadow-inner">
-          <button 
-            onClick={() => setActiveTab('list')}
-            className={`px-8 py-2.5 rounded-lg text-sm font-extrabold transition-all duration-300 ${
-              activeTab === 'list' 
-                ? 'bg-white text-blue-600 shadow-sm border border-slate-100 translate-y-0' 
-                : 'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            📋 View Inventory
-          </button>
-          <button 
-            onClick={() => setActiveTab('add')}
-            className={`px-8 py-2.5 rounded-lg text-sm font-extrabold transition-all duration-300 ${
-              activeTab === 'add' 
-                ? 'bg-white text-blue-600 shadow-sm border border-slate-100 translate-y-0' 
-                : 'bg-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-            }`}
-          >
-            + Add New Unit
-          </button>
-        </div>
+      {/* Top Bar with Add Button */}
+      <div className="pt-6 pb-4 px-6 flex justify-end sticky top-0 z-10 bg-[#FAFAFA]/90 backdrop-blur-md">
+        <button 
+          onClick={() => setIsAddingRoom(true)}
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-extrabold transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5"
+        >
+          + Add New Unit
+        </button>
       </div>
 
-      {/* Dynamic Content area */}
-      <div className="flex-1 overflow-y-auto relative custom-scrollbar">
-        {activeTab === 'list' ? <AdminRoomList /> : <AddRoom />}
+      {/* BACKGROUND: Always show the Room List */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <AdminRoomList />
       </div>
+
+      {/* FOREGROUND POPUP: Only shows when isAddingRoom is true */}
+      {isAddingRoom && (
+        <div className="absolute inset-0 z-50">
+          <AddRoom 
+            // THESE ARE THE FIXES: They tell the Cancel and ✕ buttons what to do!
+            onClose={() => setIsAddingRoom(false)} 
+            onRoomAdded={() => setIsAddingRoom(false)} 
+          />
+        </div>
+      )}
       
     </div>
   );
