@@ -31,20 +31,20 @@ export default function Notification() {
               initial={{ opacity: 0, x: 300 }} 
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 300 }}
-              className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 flex items-center space-x-3 border-l-4 border-gray-300 dark:border-gray-600"
+              className="bg-white shadow-lg rounded-lg p-4 flex items-center space-x-3 border-l-4 border-gray-300 "
               style={{ borderLeftColor: notificationColors[notification.type]?.replace('bg-', '') }}
             >
               <div className={`p-2 rounded-full ${notificationColors[notification.type]} text-white`}>
                 <Icon className="text-lg" />
               </div>
-              <p className="flex-1 text-gray-900 dark:text-white">
+              <p className="flex-1 text-gray-900">
                 {notification.message}
               </p>
               <button
                 onClick={() => removeNotification(notification.id)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <FiX className="text-gray-500 dark:text-gray-400" />
+                <FiX className="text-gray-500" />
               </button>
             </motion.div>
           );
