@@ -26,6 +26,7 @@ export default function Home() {
   const handleBack = () => {
     setCurrentStep('form');
     setBookingSummaryData(null);
+    navigate('/');
   };
 
   const handleSummary = (summaryData) => {

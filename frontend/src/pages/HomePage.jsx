@@ -14,10 +14,10 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#ffffff' }}>
-      <Header selectedSection={selectedSection} onSectionChange={setSelectedSection} />
+      { <Header selectedSection={selectedSection} onSectionChange={setSelectedSection} /> }
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+        {/*<div className="px-4 py-6 sm:px-0">
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-black mb-4">Welcome to {selectedSection} Services</h2>
             <p className="text-black">
@@ -25,16 +25,15 @@ const HomePage = () => {
             </p>
           </div>
 
-          {/* Payment Form */}
           <div className="mb-8">
             <PaymentForm addPaymentToHistory={addPaymentToHistory} />
           </div>
 
-          {/* Payment History */}
+         
           <div>
             <PaymentHistory paymentHistory={paymentHistory} />
           </div>
-        </div>
+        </div>*/}
       </main>
     </div>
   );
