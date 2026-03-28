@@ -30,20 +30,20 @@ export default function Admin() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-4xl font-bold text-gray-900  mb-2">
             Admin Panel
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-gray-600">
             Manage all laundry service requests
           </p>
         </motion.div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-semibold text-gray-900 ">
               Laundry Requests
             </h2>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-gray-600">
               Total: {bookings.length} requests
             </div>
           </div>
@@ -51,14 +51,14 @@ export default function Admin() {
           <AdminTable bookings={bookings} onStatusUpdate={handleStatusUpdate} />
         </div>
 
-        <div className="text-center mt-8">
+        {/*<div className="text-center mt-8">
           <Link
             to="/"
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-semibold"
+            className="text-[#14213d] hover:text-amber-500 font-semibold"
           >
             ← Back to Home
           </Link>
-        </div>
+        </div> */}
 
         <Notification />
       </div>
