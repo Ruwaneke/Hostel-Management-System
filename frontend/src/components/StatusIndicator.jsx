@@ -6,25 +6,25 @@ const statusConfig = {
   'Pending': {
     icon: FiClock,
     color: 'text-yellow-500',
-    bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
+    bgColor: 'bg-yellow-100',
     progress: 25
   },
   'Picked Up': {
     icon: FiTruck,
     color: 'text-blue-500',
-    bgColor: 'bg-blue-100 dark:bg-blue-900/20',
+    bgColor: 'bg-blue-100',
     progress: 50
   },
   'In Progress': {
     icon: FiSettings,
     color: 'text-orange-500',
-    bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+    bgColor: 'bg-orange-100',
     progress: 75
   },
   'Ready for Pickup': {
     icon: FiCheckCircle,
     color: 'text-green-500',
-    bgColor: 'bg-green-100 dark:bg-green-900/20',
+    bgColor: 'bg-green-100',
     progress: 100
   }
 };
@@ -38,7 +38,7 @@ export default function StatusIndicator({ status }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-gray-900">
           Status: {status}
         </h3>
         <div className={`px-3 py-1 rounded-full text-sm font-medium ${config.bgColor} ${config.color}`}>
@@ -63,13 +63,13 @@ export default function StatusIndicator({ status }) {
                   className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     isCompleted
                       ? stepConfig.color.replace('text-', 'bg-') + ' text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-400'
+                      : 'bg-gray-200 text-gray-400'
                   } ${isCurrent ? 'ring-2 ring-offset-2 ring-blue-500' : ''}`}
                 >
                   <Icon className="text-lg" />
                 </motion.div>
                 <span className={`text-xs mt-1 text-center ${
-                  isCompleted ? 'text-gray-900 dark:text-white' : 'text-gray-400'
+                  isCompleted ? 'text-gray-900' : 'text-gray-400'
                 }`}>
                   {step}
                 </span>
@@ -79,7 +79,7 @@ export default function StatusIndicator({ status }) {
         </div>
 
         <div className="relative">
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
+          <div className="h-2 bg-gray-200 rounded-full">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${config.progress}%` }}
