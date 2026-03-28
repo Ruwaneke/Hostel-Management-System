@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { CURRENT_USER } from '../constants/currentUser';
 
 const BookingContext = createContext();
 
@@ -11,24 +12,23 @@ export const useBookings = () => {
 };
 
 export default function BookingProvider({ children }) {
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      userName: 'John Doe',
-      serviceType: 'Washing',
-      date: '2024-03-25',
-      timeSlot: 'Morning',
-      location: 'Room 101',
-      status: 'Pending',
-      addons: ['Express Service']
-    }
-  ]);
+  const [bookings, setBookings] = useState([]);
+  const [lastPayment, setLastPayment] = useState(null);
 
   const addBooking = (booking) => {
     const newBooking = {
       id: Date.now(),
-      ...booking,
-      status: 'Pending'
+    
+      userName: CURRENT_USER.name,                   
+      email: CURRENT_USER.email,
+      serviceType: booking.serviceType,          
+      date: booking.date,                         
+      timeSlot: booking.timeSlot,                     
+      location: booking.location,               
+      addons: booking.addons ?? [],               
+      totalAmount: booking.totalAmount,
+      telephone: booking.telephone,
+      status: 'Pending',                            
     };
     setBookings(prev => [...prev, newBooking]);
   };
@@ -39,9 +39,20 @@ export default function BookingProvider({ children }) {
     ));
   };
 
+  const savePayment = (payment) => {
+    setLastPayment(payment);
+  };
+
   return (
-    <BookingContext.Provider value={{ bookings, addBooking, updateBookingStatus }}>
+    <BookingContext.Provider value={{
+      bookings,
+      addBooking,
+      updateBookingStatus,
+      lastPayment,
+      savePayment
+    }}>
       {children}
     </BookingContext.Provider>
   );
 }
+
