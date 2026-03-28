@@ -4,105 +4,125 @@ import { FiCheck, FiX } from 'react-icons/fi';
 import { useBookings } from '../context/BookingContext';
 import { useNotifications } from '../context/NotificationContext';
 
+const PRICE_PER_PIECE = 50.00;
+
 export default function BookingSummary({ bookingSummaryData, onEdit, onConfirm, onCancel }) {
-  const { addBooking } = useBookings();
   const { addNotification } = useNotifications();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    fullName,
+    email,
+    telephone,
+    location,
+    selectedServiceName,   // single string
+    pieces,
+    date,
+    timeSlot,
+    selectedAddonNames,    // array of addon objects { id, name, price }
+    piecesTotal,
+    addonsTotal,
+    bookingFee,
+    grandTotal,
+  } = bookingSummaryData;
 
   const handleConfirmBooking = async () => {
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const booking = {
-      userName: bookingSummaryData.fullName,
-      serviceType: bookingSummaryData.selectedServiceNames.join(' + '),
-      date: bookingSummaryData.date?.toISOString().split('T')[0],
-      timeSlot: bookingSummaryData.timeSlot,
-      location: bookingSummaryData.location,
-      addons: bookingSummaryData.selectedAddonNames.map(a => a.name),
-      totalAmount: bookingSummaryData.addonsTotal + bookingSummaryData.bookingFee,
-      email: bookingSummaryData.email,
-      telephone: bookingSummaryData.telephone
+      userName: fullName,
+      serviceType: selectedServiceName,
+      pieces,
+      date: date?.toISOString().split('T')[0],
+      timeSlot,
+      location,
+      addons: (selectedAddonNames ?? []).map(a => a.name),
+      totalAmount: grandTotal,
+      email,
+      telephone,
     };
 
-    addBooking(booking);
-    addNotification('Booking confirmed successfully!', 'success');
+    //addNotification('Booking confirmed successfully!', 'success');
     setIsSubmitting(false);
     onConfirm();
   };
-
-  const totalPrice = bookingSummaryData.addonsTotal + bookingSummaryData.bookingFee;
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-2xl"
+      className="bg-white rounded-xl shadow-lg p-6 max-w-2xl w-full"
     >
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">
         Booking Summary
       </h2>
 
       <div className="space-y-6">
-        {/* Customer Info */}
-        <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Customer Information</h3>
+
+        {/* ── Customer Info ── */}
+        <div className="bg-gray-50  p-4 rounded-lg">
+          <h3 className="font-semibold text-gray-900  mb-3">Customer Information</h3>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Full Name</p>
-              <p className="font-medium text-gray-900 dark:text-white">{bookingSummaryData.fullName}</p>
+              <p className="text-sm text-gray-500">Full Name</p>
+              <p className="font-medium text-gray-900 ">{fullName}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
-              <p className="font-medium text-gray-900 dark:text-white">{bookingSummaryData.email}</p>
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="font-medium text-gray-900 ">{email}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Phone</p>
-              <p className="font-medium text-gray-900 dark:text-white">{bookingSummaryData.telephone}</p>
+              <p className="text-sm text-gray-500">Phone</p>
+              <p className="font-medium text-gray-900 ">{telephone}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Location</p>
-              <p className="font-medium text-gray-900 dark:text-white">{bookingSummaryData.location}</p>
+              <p className="text-sm text-gray-500">Location</p>
+              <p className="font-medium text-gray-900 ">{location}</p>
             </div>
           </div>
         </div>
 
-        {/* Services Selected */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+        {/* ── Service & Schedule ── */}
+        <div className="bg-blue-50  p-4 rounded-lg border border-blue-200">
+          <h3 className="font-semibold text-gray-900  mb-3 flex items-center">
             <FiCheck className="mr-2 text-green-600 dark:text-green-400" />
-            Selected Services
+            Selected Service
           </h3>
-          <div className="space-y-2">
-            {bookingSummaryData.selectedServiceNames.map((service, index) => (
-              <div key={index} className="flex items-center">
-                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium">
-                  {service}
-                </span>
-              </div>
-            ))}
+
+          {/* Service badge */}
+          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+            {selectedServiceName || '—'}
+          </span>
+
+          {/* Pieces */}
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-sm text-gray-600">Pieces:</span>
+            <span className="font-semibold text-gray-900">
+              {pieces} {pieces === 1 ? 'piece' : 'pieces'}
+            </span>
           </div>
-          <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-medium">Date:</span> {bookingSummaryData.date?.toLocaleDateString()}
+
+          {/* Date & Time */}
+          <div className="mt-3 pt-3 border-t border-blue-200 space-y-1">
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">Date:</span> {date?.toLocaleDateString()}
             </p>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-medium">Time:</span> {bookingSummaryData.timeSlot}
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">Time:</span> {timeSlot}
             </p>
           </div>
         </div>
 
-        {/* Add-ons */}
-        {bookingSummaryData.selectedAddonNames.length > 0 ? (
-          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-              Selected Add-ons
-            </h3>
+        {/* ── Add-ons ── */}
+        {(selectedAddonNames ?? []).length > 0 ? (
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <h3 className="font-semibold text-gray-900 mb-3">Selected Add-ons</h3>
             <div className="space-y-2">
-              {bookingSummaryData.selectedAddonNames.map((addon, index) => (
+              {selectedAddonNames.map((addon, index) => (
                 <div key={index} className="flex justify-between items-center">
-                  <span className="text-gray-700 dark:text-gray-300">{addon.name}</span>
-                  <span className="font-semibold text-green-600 dark:text-green-400">
+                  <span className="text-gray-700">{addon.name}</span>
+                  <span className="font-semibold text-amber-500">
                     LKR {addon.price.toFixed(2)}
                   </span>
                 </div>
@@ -110,41 +130,59 @@ export default function BookingSummary({ bookingSummaryData, onEdit, onConfirm, 
             </div>
           </div>
         ) : (
-          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg text-gray-600 dark:text-gray-300 text-sm">
+          <div className="bg-gray-100 p-4 rounded-lg text-gray-500 text-sm">
             No add-ons selected
           </div>
         )}
 
-        {/* Price Breakdown */}
-        <div className="bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Price Breakdown</h3>
-          <div className="space-y-2">
+        {/* ── Price Breakdown ── */}
+        <div className="bg-[#14213D] p-4 rounded-lg">
+          <h3 className="font-semibold text-white mb-4">Price Breakdown</h3>
+          <div className="space-y-2 text-sm">
+
+            {/* Pieces cost */}
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">Add-ons Total:</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                LKR {bookingSummaryData.addonsTotal.toFixed(2)}
+              <span className="text-gray-50">
+                Pieces ({pieces} × LKR {PRICE_PER_PIECE.toFixed(2)}):
+              </span>
+              <span className="font-semibold text-gray-100">
+                LKR {(piecesTotal ?? 0).toFixed(2)}
               </span>
             </div>
+
+            {/* Addons cost (only if any) */}
+            {(addonsTotal ?? 0) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-50">Add-ons Total:</span>
+                <span className="font-semibold text-gray-100">
+                  LKR {addonsTotal.toFixed(2)}
+                </span>
+              </div>
+            )}
+
+            {/* Booking fee */}
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">Booking Fee:</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                LKR {bookingSummaryData.bookingFee.toFixed(2)}
+              <span className="text-gray-50 ">Booking Fee:</span>
+              <span className="font-semibold text-gray-100">
+                LKR {(bookingFee ?? 0).toFixed(2)}
               </span>
             </div>
-            <div className="border-t border-blue-200 dark:border-blue-700 pt-2 mt-2 flex justify-between">
-              <span className="font-bold text-lg text-gray-900 dark:text-white">Total Amount:</span>
-              <span className="font-bold text-2xl text-green-600 dark:text-green-400">
-                LKR {totalPrice.toFixed(2)}
+
+            {/* Grand total */}
+            <div className="border-t border-blue-200 pt-2 mt-2 flex justify-between">
+              <span className="font-bold text-lg text-gray-50">Total Amount:</span>
+              <span className="font-bold text-2xl text-amber-500">
+                LKR {(grandTotal ?? 0).toFixed(2)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* ── Action Buttons ── */}
         <div className="flex gap-3 pt-4">
           <button
             onClick={onEdit}
-            className="flex-1 bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
           >
             <FiX className="mr-2" />
             Edit Booking
@@ -152,7 +190,7 @@ export default function BookingSummary({ bookingSummaryData, onEdit, onConfirm, 
           <button
             onClick={handleConfirmBooking}
             disabled={isSubmitting}
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+            className="flex-1 bg-amber-500 hover:bg-amber-600 disabled:bg-amber-300 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
           >
             {isSubmitting ? (
               <>
@@ -170,7 +208,7 @@ export default function BookingSummary({ bookingSummaryData, onEdit, onConfirm, 
 
         <button
           onClick={onCancel}
-          className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 font-semibold py-2 px-4 transition-colors"
+          className="w-full text-gray-500  hover:text-gray-900 font-semibold py-2 px-4 transition-colors"
         >
           Cancel
         </button>

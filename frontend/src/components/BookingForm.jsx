@@ -1,24 +1,28 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { GiWashingMachine, GiTShirt } from 'react-icons/gi';
 import { useBookings } from '../context/BookingContext';
 import { useNotifications } from '../context/NotificationContext';
+import { CURRENT_USER } from '../constants/currentUser';
+
+const PRICE_PER_PIECE = 50.00;
+const BOOKING_FEE = 100.00;
 
 export default function BookingForm({ onBack, onSummary }) {
   const { addBooking } = useBookings();
   const { addNotification } = useNotifications();
-  const [currentStep, setCurrentStep] = useState('form');
-  
+
   const [formData, setFormData] = useState({
-    fullName: 'John Doe',
-    email: 'john@example.com',
+    fullName: CURRENT_USER.name,
+    email: CURRENT_USER.email,
     telephone: '',
-    services: [],
+    service: '',
+    pieces: 1,
     date: null,
     timeSlot: '',
-    location: '',
+    location: CURRENT_USER.roomNumber,
     addons: []
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,26 +33,23 @@ export default function BookingForm({ onBack, onSummary }) {
       name: 'Washing',
       description: 'Professional washing service',
       icon: GiWashingMachine,
-      color: 'bg-blue-500'
     },
     {
       id: 'ironing',
       name: 'Ironing',
       description: 'Expert ironing service',
       icon: GiTShirt,
-      color: 'bg-orange-500'
     },
     {
       id: 'both',
       name: 'Both Services',
       description: 'Washing + Ironing',
       icon: GiWashingMachine,
-      color: 'bg-purple-500'
     }
   ];
 
   const timeSlots = ['Morning (9AM-12PM)', 'Afternoon (1PM-5PM)', 'Evening (6PM-9PM)'];
-  
+
   const availableAddons = [
     { id: 'express', name: 'Express Service', price: 250.00 },
     { id: 'folding', name: 'Folding Service', price: 150.00 },
@@ -56,21 +57,38 @@ export default function BookingForm({ onBack, onSummary }) {
     { id: 'fragrance', name: 'Premium Fragrance', price: 100.00 }
   ];
 
+  const isIroning = formData.service === 'ironing';
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Telephone validation: only numbers and max 10 digits
+    if (name === 'telephone') {
+      const numbersOnly = value.replace(/\D/g, '').slice(0, 10);
+      setFormData(prev => ({ ...prev, [name]: numbersOnly }));
+      return;
+    }
+    
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleServiceToggle = (serviceId) => {
+  const handleServiceSelect = (serviceId) => {
     setFormData(prev => ({
       ...prev,
-      services: prev.services.includes(serviceId)
-        ? prev.services.filter(s => s !== serviceId)
-        : [...prev.services, serviceId]
+      service: prev.service === serviceId ? '' : serviceId,
+      addons: serviceId === 'ironing' ? [] : prev.addons
+    }));
+  };
+
+  const handlePiecesChange = (delta) => {
+    setFormData(prev => ({
+      ...prev,
+      pieces: Math.min(8, Math.max(1, prev.pieces + delta))
     }));
   };
 
   const handleAddonToggle = (addonId) => {
+    if (isIroning) return;
     setFormData(prev => ({
       ...prev,
       addons: prev.addons.includes(addonId)
@@ -79,38 +97,44 @@ export default function BookingForm({ onBack, onSummary }) {
     }));
   };
 
-  const calculateAddonsTotal = () => {
-    return availableAddons
+  const piecesTotal = () => formData.pieces * PRICE_PER_PIECE;
+
+  const addonsTotal = () =>
+    availableAddons
       .filter(addon => formData.addons.includes(addon.id))
       .reduce((sum, addon) => sum + addon.price, 0);
-  };
+
+  const grandTotal = () => piecesTotal() + addonsTotal() + BOOKING_FEE;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (formData.services.length === 0) {
-      addNotification('Please select at least one service', 'warning');
+
+    if (!formData.service) {
+      addNotification('Please select a service', 'warning');
       return;
     }
-
-    if (!formData.date || !formData.timeSlot || !formData.location || !formData.telephone) {
+    if (!formData.date || !formData.timeSlot || !formData.location) {
       addNotification('Please fill in all required fields', 'warning');
+      return;
+    }
+    if (!formData.telephone || formData.telephone.length !== 10) {
+      addNotification('Please enter a valid 10-digit telephone number', 'warning');
       return;
     }
 
     setIsSubmitting(true);
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    const selectedService = serviceOptions.find(s => s.id === formData.service);
+
     const summaryData = {
       ...formData,
-      selectedServiceNames: formData.services.map(id => 
-        serviceOptions.find(s => s.id === id).name
-      ),
-      selectedAddonNames: formData.addons.map(id => 
-        availableAddons.find(a => a.id === id)
-      ),
-      addonsTotal: calculateAddonsTotal(),
-      bookingFee: 100.00
+      selectedServiceName: selectedService?.name,
+      selectedAddonNames: formData.addons.map(id => availableAddons.find(a => a.id === id)),
+      piecesTotal: piecesTotal(),
+      addonsTotal: addonsTotal(),
+      bookingFee: BOOKING_FEE,
+      grandTotal: grandTotal()
     };
 
     setIsSubmitting(false);
@@ -121,30 +145,23 @@ export default function BookingForm({ onBack, onSummary }) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
+      className="bg-white rounded-xl shadow-lg p-6"
     >
       <div className="flex items-center mb-6">
-        <button
-          onClick={onBack}
-          className="mr-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-        >
-          ← Back
-        </button>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Laundry Booking Form
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900">Laundry Booking Form</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Service Selection */}
+
+        {/* ── Service Selection (single-select) ── */}
         <div>
-          <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Select Services *
+          <label className="block text-sm font-semibold text-gray-900 mb-4">
+            Select Service *
           </label>
           <div className="grid md:grid-cols-3 gap-4">
             {serviceOptions.map((service, index) => {
               const Icon = service.icon;
-              const isSelected = formData.services.includes(service.id);
+              const isSelected = formData.service === service.id;
               return (
                 <motion.button
                   key={service.id}
@@ -152,12 +169,12 @@ export default function BookingForm({ onBack, onSummary }) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  whileHover={{ scale: 1.05 }}
-                  onClick={() => handleServiceToggle(service.id)}
+                  whileHover={{ scale: 1.03 }}
+                  onClick={() => handleServiceSelect(service.id)}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     isSelected
-                      ? `border-blue-500 ${service.color} text-white shadow-lg`
-                      : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white hover:border-gray-400'
+                      ? 'border-amber-500 bg-amber-500 text-black shadow-lg'
+                      : 'border-gray-300 bg-gray-50 text-gray-900 hover:border-gray-400'
                   }`}
                 >
                   <Icon className="text-3xl mb-2 mx-auto" />
@@ -169,73 +186,124 @@ export default function BookingForm({ onBack, onSummary }) {
           </div>
         </div>
 
-        {/* Personal Information */}
+        {/* ── Number of Pieces ── */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Number of Pieces *{' '}
+            <span className="text-gray-400 font-normal">(LKR {PRICE_PER_PIECE.toFixed(2)} per piece)</span>
+          </label>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => handlePiecesChange(-1)}
+              disabled={formData.pieces <= 1}
+              className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center text-md font-bold text-gray-600 hover:border-amber-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              −
+            </button>
+
+            {/* Pill track */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: 8 }, (_, i) => i + 1).map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, pieces: n }))}
+                  className={`w-8 h-8 rounded-full text-sm font-semibold transition-all ${
+                    n === formData.pieces
+                      ? 'bg-amber-500 text-black shadow-md scale-110'
+                      : n < formData.pieces
+                      ? 'bg-amber-200 text-amber-800'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handlePiecesChange(1)}
+              disabled={formData.pieces >= 8}
+              className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center text-xl font-bold text-gray-600 hover:border-amber-500 hover:text-amber-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              +
+            </button>
+
+            <span className="text-sm text-gray-500">
+              {formData.pieces} {formData.pieces === 1 ? 'piece' : 'pieces'} × LKR {PRICE_PER_PIECE.toFixed(2)} ={' '}
+              <span className="font-semibold text-gray-800">LKR {piecesTotal().toFixed(2)}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* ── Personal Information ── */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Full Name
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
               type="text"
               name="fullName"
               value={formData.fullName}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-transparent"
               required
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Telephone Number *
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Telephone Number *{' '}
+            <span className="text-gray-400 font-normal text-xs">(10 digits)</span>
           </label>
           <input
             type="tel"
             name="telephone"
             value={formData.telephone}
             onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            maxLength="10"
+            placeholder="eg : 0774150135"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-transparent"
             required
           />
+          {formData.telephone.length > 0 && formData.telephone.length < 10 && (
+            <p className="text-red-500 text-xs mt-1"> 
+            </p>
+          )}
         </div>
 
-        {/* Booking Details */}
+        {/* ── Booking Details ── */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Booking Date *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Booking Date *</label>
             <DatePicker
               selected={formData.date}
               onChange={(date) => setFormData(prev => ({ ...prev, date }))}
               minDate={new Date()}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-transparent"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Time Slot *
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Time Slot *</label>
             <select
               name="timeSlot"
               value={formData.timeSlot}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-transparent"
               required
             >
               <option value="">Select time slot</option>
@@ -247,64 +315,96 @@ export default function BookingForm({ onBack, onSummary }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Location / Room Number *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Location / Room Number *</label>
           <input
             type="text"
             name="location"
             value={formData.location}
             onChange={handleInputChange}
             placeholder="e.g., Room 101, Block A"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-amber-500 focus:border-transparent"
             required
           />
         </div>
 
-        {/* Add-ons Section */}
-        <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            Add-ons (Optional) - Prices in LKR
-          </label>
+        {/* ── Add-ons ── */}
+        <div className={`p-4 rounded-lg border transition-all ${isIroning ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-gray-50 border-transparent'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Add-ons (Optional) — Prices in LKR
+            </label>
+            {isIroning && (
+              <span className="text-xs text-red-500 font-medium bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                Not available for Ironing
+              </span>
+            )}
+          </div>
           <div className="space-y-2">
             {availableAddons.map(addon => (
-              <label key={addon.id} className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600/50 rounded cursor-pointer">
+              <label
+                key={addon.id}
+                className={`flex items-center p-2 rounded transition-colors ${
+                  isIroning
+                    ? 'cursor-not-allowed'
+                    : 'hover:bg-gray-100 cursor-pointer'
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={formData.addons.includes(addon.id)}
                   onChange={() => handleAddonToggle(addon.id)}
-                  className="mr-2 w-4 h-4"
+                  disabled={isIroning}
+                  className="mr-2 w-4 h-4 disabled:cursor-not-allowed"
                 />
-                <span className="flex-1 text-gray-700 dark:text-gray-300">
-                  {addon.name}
-                </span>
-                <span className="text-green-600 dark:text-green-400 font-semibold">
-                  LKR {addon.price.toFixed(2)}
-                </span>
+                <span className="flex-1 text-gray-700">{addon.name}</span>
+                <span className="text-[#14213D] font-semibold">LKR {addon.price.toFixed(2)}</span>
               </label>
             ))}
           </div>
         </div>
 
-        {/* Price Summary */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Price Summary</h3>
-          <div className="space-y-1 text-sm">
+        {/* ── Price Summary ── */}
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-400">
+          <h3 className="font-semibold text-gray-900 mb-3">Price Summary</h3>
+          <div className="space-y-1.5 text-sm">
+
+            {/* Pieces */}
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">Add-ons Total:</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                LKR {calculateAddonsTotal().toFixed(2)}
+              <span className="text-gray-600">
+                Pieces ({formData.pieces} × LKR {PRICE_PER_PIECE.toFixed(2)}):
               </span>
+              <span className="font-semibold text-gray-900">LKR {piecesTotal().toFixed(2)}</span>
             </div>
+
+            {/* Addons (only if any selected and not ironing) */}
+            {!isIroning && formData.addons.length > 0 && (
+              <>
+                {formData.addons.map(id => {
+                  const addon = availableAddons.find(a => a.id === id);
+                  return (
+                    <div key={id} className="flex justify-between text-gray-500">
+                      <span className="pl-3">+ {addon.name}:</span>
+                      <span>LKR {addon.price.toFixed(2)}</span>
+                    </div>
+                  );
+                })}
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Add-ons Total:</span>
+                  <span className="font-semibold text-gray-900">LKR {addonsTotal().toFixed(2)}</span>
+                </div>
+              </>
+            )}
+
+            {/* Booking fee */}
             <div className="flex justify-between">
-              <span className="text-gray-700 dark:text-gray-300">Booking Fee:</span>
-              <span className="font-semibold text-gray-900 dark:text-white">LKR 100.00</span>
+              <span className="text-gray-600">Booking Fee:</span>
+              <span className="font-semibold text-gray-900">LKR {BOOKING_FEE.toFixed(2)}</span>
             </div>
-            <div className="border-t border-blue-200 dark:border-blue-800 pt-1 mt-2 flex justify-between">
-              <span className="font-semibold text-gray-900 dark:text-white">Estimated Total:</span>
-              <span className="font-bold text-lg text-green-600 dark:text-green-400">
-                LKR {(calculateAddonsTotal() + 100.00).toFixed(2)}
-              </span>
+
+            {/* Grand total */}
+            <div className="border-t border-blue-200 pt-2 mt-2 flex justify-between">
+              <span className="font-semibold text-gray-900">Estimated Total:</span>
+              <span className="font-bold text-lg text-amber-500">LKR {grandTotal().toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -312,7 +412,7 @@ export default function BookingForm({ onBack, onSummary }) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+          className="w-full bg-[#14213D] hover:bg-[#1e3160] disabled:bg-[#E5E5E5] disabled:text-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
         >
           {isSubmitting ? (
             <>
