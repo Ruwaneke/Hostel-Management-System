@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import BookingForm from "../components/BookingForm";
+import BookingSummary from "../components/BookingSummary";
+import PaymentForm from '../components/PaymentForm';
 import UserComplaints from "./UserComplaints";
 import UserFeedback from "./UserFeedback";
+
+
+
+
 
 const menuItems = [
   { id: "overview",   label: "Overview",   icon: "" },
@@ -112,6 +119,30 @@ export default function UserDashboard() {
     }
   ];
 
+  const [laundryStep, setLaundryStep] = useState("form");
+  const [bookingSummaryData, setBookingSummaryData] = useState(null);
+
+  const handleLaundrySummary = (data) => {
+    setBookingSummaryData(data);
+    setLaundryStep("summary");
+  };
+
+  const handleLaundryCancel = () => {
+    setBookingSummaryData(null);
+    setLaundryStep("form");
+  };
+
+  const handleLaundryConfirm = (data) => {
+  setBookingSummaryData(data);
+  setLaundryStep("payment"); 
+};
+
+const handlePaymentComplete = () => {
+  setLaundryStep("form");
+  setBookingSummaryData(null);
+  setActive("overview");
+};
+
   const { user, logout }          = useAuth();
   const navigate                  = useNavigate();
 
@@ -179,76 +210,30 @@ export default function UserDashboard() {
           </div>
         );
 
-      case "payments":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">My Payments</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Month</TH><TH>Amount</TH><TH>Due Date</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {[
-                    { month: "March 2026",    amount: "$450", due: "Mar 5",  status: "Paid"    },
-                    { month: "February 2026", amount: "$450", due: "Feb 5",  status: "Paid"    },
-                    { month: "January 2026",  amount: "$450", due: "Jan 5",  status: "Paid"    },
-                    { month: "April 2026",    amount: "$450", due: "Apr 5",  status: "Upcoming"},
-                  ].map((p, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD>{p.month}</TD>
-                      <TD><span className="font-semibold">{p.amount}</span></TD>
-                      <TD>{p.due}</TD>
-                      <TD><Badge s={p.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-
       case "laundry":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Laundry Service</h2>
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h3 className="font-bold text-slate-700 mb-4">Submit a Laundry Request</h3>
-              {submitted.laundry ? (
-                <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm flex items-center gap-2">
-                  <span></span> Request submitted! Expected return: Tomorrow 5 PM
-                </div>
-              ) : (
-                <div className="flex gap-3 flex-wrap">
-                  <input
-                    type="number" min="1" placeholder="Number of items"
-                    value={laundryItems} onChange={e => setLaundryItems(e.target.value)}
-                    className="flex-1 min-w-0 px-5 py-3 border-2 border-brand-platinum rounded-xl text-sm font-medium focus:outline-none focus:border-brand-gold bg-brand-platinum/10 transition-colors"
-                  />
-                  <button
-                    onClick={() => { if (laundryItems) setSubmitted(s => ({ ...s, laundry: true })); }}
-                    className="px-6 py-3 bg-brand-gold hover:bg-[#e5920f] text-brand-black text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg"
-                  >
-                    Submit Request
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Date</TH><TH>Items</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {[
-                    { date: "Mar 6, 2026",  items: "5 pcs", status: "Delivered" },
-                    { date: "Feb 20, 2026", items: "3 pcs", status: "Delivered" },
-                  ].map((l, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD>{l.date}</TD><TD>{l.items}</TD><TD><Badge s={l.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+  return (
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-slate-800">Laundry Service</h2>
+      {laundryStep === "form" ? (
+        <BookingForm onBack={() => setActive("overview")} onSummary={handleLaundrySummary} />
+      ) : laundryStep === "summary" ? (
+        <BookingSummary
+          bookingSummaryData={bookingSummaryData}
+          onEdit={() => setLaundryStep("form")}
+          onConfirm={handleLaundryConfirm}
+          onCancel={handleLaundryCancel}
+        />
+      ) : laundryStep === "payment" ? (
+        <PaymentForm
+          bookingData={bookingSummaryData}
+          addPaymentToHistory={(p) => console.log("payment", p)}
+          onBack={() => setLaundryStep("summary")}
+          onPaymentComplete={handlePaymentComplete}  // ✅ this triggers after modal closes
+        />
+      ) : null}
+    </div>
+  );
+
 
       case "complaints":
         return <UserComplaints isEmbedded={true} />;
@@ -376,23 +361,6 @@ export default function UserDashboard() {
           </div>
         );
 
-      case "complaints":
-        return (
-          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
-              <UserComplaints isEmbedded={true} />
-            </div>
-          </div>
-        );
-
-      case "feedback":
-        return (
-          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
-              <UserFeedback isEmbedded={true} />
-            </div>
-          </div>
-        );
 
       default: return null;
     }
