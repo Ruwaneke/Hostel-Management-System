@@ -1,124 +1,149 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
+import { QRCodeSVG } from 'qrcode.react'; // The QR Code generator
 
 export default function PaymentSuccess() {
+  const { bookingId } = useParams();
   const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id'); // Gets the Stripe session ID from the URL
   const navigate = useNavigate();
-  const [status, setStatus] = useState('verifying');
-  const [errorMessage, setErrorMessage] = useState('');
 
-  const sessionId = searchParams.get('session_id');
-  const bookingId = searchParams.get('booking_id');
+  const [loading, setLoading] = useState(true);
+  const [verificationStatus, setVerificationStatus] = useState('Verifying your secure payment...');
 
   useEffect(() => {
-    const verifyStripePayment = async () => {
+    const verifyPayment = async () => {
       try {
-        // 1. Get the token - Without this, the backend will reject the update!
-        const token = localStorage.getItem('token');
-        
-        console.log("Verifying with Backend...");
-
-        const response = await fetch('http://localhost:5025/api/payments/verify-payment', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}` // MUST BE HERE
-          },
-          body: JSON.stringify({ session_id: sessionId, booking_id: bookingId })
+        // Send the booking ID and Stripe Session ID to your backend to officially mark it as PAID
+        await axios.post('http://localhost:5025/api/bookings/verify-payment', {
+          bookingId,
+          stripeSessionId: sessionId
         });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          console.log("Verification Success!");
-          setStatus('success');
-        } else {
-          console.error("Verification Failed:", data.message);
-          setStatus('error');
-          setErrorMessage(data.message || 'Payment verification failed.');
-        }
+        
+        setVerificationStatus('Success');
       } catch (error) {
-        console.error("Network Error:", error);
-        setStatus('error');
-        setErrorMessage('Server is not responding.');
+        console.error("Verification failed", error);
+        setVerificationStatus('Failed');
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (sessionId && bookingId) {
-      verifyStripePayment();
+    if (sessionId) {
+      verifyPayment();
     } else {
-      navigate('/user-dashboard');
+      setVerificationStatus('Failed');
+      setLoading(false);
     }
-  }, [sessionId, bookingId, navigate]);
+  }, [bookingId, sessionId]);
+
+  // Function to handle PDF/Print Download
+  const handleDownloadReceipt = () => {
+    window.print(); // Triggers the browser's native print-to-pdf feature
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#e5e5e5] flex flex-col justify-center items-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-brand-navy border-t-brand-gold mb-6"></div>
+        <h2 className="text-xl font-bold text-slate-600">{verificationStatus}</h2>
+      </div>
+    );
+  }
+
+  if (verificationStatus === 'Failed') {
+    return (
+      <div className="min-h-screen bg-[#e5e5e5] flex flex-col justify-center items-center text-center">
+        <div className="text-6xl mb-4">❌</div>
+        <h2 className="text-2xl font-black text-rose-600 mb-2">Payment Verification Failed</h2>
+        <p className="text-slate-500 mb-6">We could not verify your payment with Stripe. Please contact administration.</p>
+        <button onClick={() => navigate('/user-dashboard')} className="bg-brand-navy text-white px-6 py-3 rounded-xl font-bold">Go to Dashboard</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4 sm:p-6 font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-[#e5e5e5] py-12 px-6 flex justify-center items-center">
       
-      {/* Premium Card Container */}
-      <div className="bg-white p-8 sm:p-12 rounded-[2.5rem] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] max-w-lg w-full text-center border-t-4 border-blue-500 animate-in zoom-in-95 duration-500 relative overflow-hidden">
+      {/* RECEIPT CARD (This is what gets printed!) */}
+      <div className="bg-white max-w-2xl w-full rounded-3xl shadow-xl overflow-hidden border border-slate-200 printable-receipt">
         
-        {/* Soft Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-blue-50 blur-3xl pointer-events-none rounded-b-[100%]"></div>
+        {/* Green Success Header */}
+        <div className="bg-emerald-500 p-8 text-center text-white">
+          <div className="w-20 h-20 bg-white text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow-lg border-4 border-emerald-400">
+            ✓
+          </div>
+          <h1 className="text-3xl font-black mb-1">Payment Successful!</h1>
+          <p className="font-medium opacity-90">Your room is now officially secured.</p>
+        </div>
 
-        <div className="relative z-10">
+        {/* Receipt Body */}
+        <div className="p-8 sm:p-12">
           
-          {/* ── LOADING STATE ── */}
-          {status === 'verifying' && (
-            <div className="py-10">
-              <div className="w-16 h-16 border-4 border-slate-100 border-t-blue-600 rounded-full animate-spin mx-auto mb-8 shadow-sm"></div>
-              <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Securing Residency...</h2>
-              <p className="text-slate-500 mt-2 font-medium">Validating your transaction with Stripe's secure servers.</p>
+          <div className="flex justify-between items-start mb-10 pb-10 border-b-2 border-dashed border-slate-200">
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Booking Reference</p>
+              <p className="text-lg font-black text-brand-navy">{bookingId.substring(0, 8).toUpperCase()}</p>
+              <p className="text-sm font-semibold text-slate-500 mt-1">Date: {new Date().toLocaleDateString()}</p>
             </div>
-          )}
-
-          {/* ── SUCCESS STATE ── */}
-          {status === 'success' && (
-            <div className="py-2">
-              <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-sm border border-emerald-100">
-                ✓
-              </div>
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-6 tracking-tight">Payment Confirmed!</h2>
-              
-              {/* Transaction Details Box */}
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-8">
-                  <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1.5">Initial Bundle Settled</p>
-                  <p className="text-blue-900 font-extrabold text-lg">Key Money + 1st Month's Rent</p>
-              </div>
-
-              <p className="text-slate-500 font-medium mb-10 leading-relaxed text-sm">
-                Your residency is now <span className="text-emerald-600 font-bold uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded">Active</span>. 
-                The hostel administration has been notified of your secured unit. You can view your Digital Pass in the dashboard.
-              </p>
-              
-              <div className="space-y-4">
-                <Link to="/user-dashboard" className="block w-full bg-blue-600 text-white font-extrabold py-4 rounded-xl hover:bg-blue-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 shadow-blue-600/20 text-sm">
-                  Enter Student Portal
-                </Link>
-                <Link to={`/payment-receipt?booking_id=${bookingId}`} className="block w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-100 hover:text-blue-600 transition-colors text-sm">
-                  Download Official Receipt (PDF)
-                </Link>
-              </div>
+            
+            {/* QR CODE GENERATOR */}
+            <div className="p-2 bg-white border-2 border-slate-100 rounded-xl shadow-sm">
+              <QRCodeSVG 
+                value={`hostelms://verify-booking/${bookingId}`} 
+                size={80} 
+                bgColor={"#ffffff"}
+                fgColor={"#14213d"} // brand-navy
+                level={"M"}
+              />
             </div>
-          )}
+          </div>
 
-          {/* ── ERROR STATE ── */}
-          {status === 'error' && (
-            <div className="py-6">
-              <div className="w-20 h-20 bg-rose-50 text-rose-500 border border-rose-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-sm">
-                !
-              </div>
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">Verification Error</h2>
-              <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl mb-8">
-                <p className="text-rose-600 font-bold text-sm">{errorMessage}</p>
-              </div>
-              <Link to="/user-dashboard" className="block w-full bg-slate-800 text-white font-extrabold py-4 rounded-xl hover:bg-slate-900 transition-all shadow-md text-sm">
-                Return to Dashboard
-              </Link>
+          <div className="space-y-4 mb-10">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Transaction Details</h3>
+            
+            <div className="flex justify-between items-center text-slate-600 font-medium pb-4 border-b border-slate-100">
+              <span>First Month Rent</span>
+              <span className="text-slate-800">Paid ✓</span>
             </div>
-          )}
+            <div className="flex justify-between items-center text-slate-600 font-medium pb-4 border-b border-slate-100">
+              <span>Refundable Key Money</span>
+              <span className="text-slate-800">Paid ✓</span>
+            </div>
+            <div className="flex justify-between items-center text-slate-600 font-medium pb-4 border-b border-slate-100">
+              <span>Payment Gateway</span>
+              <span className="text-slate-800 flex items-center gap-2">Stripe <span className="w-2 h-2 rounded-full bg-emerald-500"></span></span>
+            </div>
+          </div>
+
+          {/* Action Buttons (These will be hidden when printing using CSS) */}
+          <div className="flex flex-col sm:flex-row gap-4 no-print">
+            <button 
+              onClick={handleDownloadReceipt}
+              className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-xl transition-colors flex justify-center items-center gap-2"
+            >
+              <span>📥</span> Download Receipt
+            </button>
+            <button 
+              onClick={() => navigate('/user-dashboard')}
+              className="flex-1 bg-brand-navy hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-colors shadow-lg flex justify-center items-center gap-2"
+            >
+              Go to My Dashboard <span>→</span>
+            </button>
+          </div>
 
         </div>
       </div>
+      
+      {/* CSS to hide buttons when the user prints the PDF */}
+      <style>{`
+        @media print {
+          body { background-color: white; }
+          .no-print { display: none !important; }
+          .printable-receipt { box-shadow: none; border: none; }
+        }
+      `}</style>
     </div>
   );
 }

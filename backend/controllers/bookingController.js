@@ -1,93 +1,183 @@
+import Stripe from 'stripe';
 import Booking from '../models/Booking.js';
 import Room from '../models/Room.js';
+import Invoice from '../models/Invoice.js';
 
-// @desc    Create a new room booking request
-export const createBooking = async (req, res) => {
-    try {
-        const { 
-            roomId, 
-            roomNumber, 
-            studentName, 
-            studentEmail, 
-            agreedToTerms, 
-            nicNumber, 
-            emergencyContactName, 
-            emergencyContactPhone, 
-            expectedMoveInDate, 
-            specialRequests 
-        } = req.body;
+// ==========================================
+// 1. CREATE BOOKING & STRIPE CHECKOUT
+// ==========================================
+export const createBookingAndCheckout = async (req, res) => {
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-        // 1. Check if user already has a booking
-        const existingBooking = await Booking.findOne({ studentEmail });
-        if (existingBooking) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'You already have an active booking or pending request.' 
-            });
-        }
+    // 🔥 DESTRUCTURED name AND email FROM req.body
+    const { 
+      roomId, 
+      userId, 
+      name, 
+      email, 
+      nicNumber, 
+      emergencyContactName, 
+      emergencyContactPhone, 
+      expectedMoveInDate, 
+      specialRequests 
+    } = req.body;
 
-        // 2. Check if room exists and has capacity
-        const room = await Room.findById(roomId);
-        if (!room) {
-            return res.status(404).json({ success: false, message: 'Room not found.' });
-        }
+    const room = await Room.findById(roomId);
+    if (!room) return res.status(404).json({ message: 'Room not found' });
 
-        if (room.bookedStudents.length >= room.capacity) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Sorry, this room is already fully occupied.' 
-            });
-        }
+    // Prevent Multiple Bookings
+    const existingBooking = await Booking.findOne({ 
+      studentId: userId, 
+      status: { $in: ['Pending Approval', 'Confirmed', 'Active'] } 
+    });
 
-        // 3. Create the booking document
-        const booking = await Booking.create({
-            roomId,
-            roomNumber,
-            studentName,
-            studentEmail,
-            agreedToTerms,
-            nicNumber,
-            emergencyContactName,
-            emergencyContactPhone,
-            expectedMoveInDate,
-            specialRequests
-        });
-
-        // 4. CRITICAL: Add the student's email/ID to the Room's bookedStudents array
-        // This ensures the occupancy count (e.g. 1/4 filled) updates correctly!
-        await Room.findByIdAndUpdate(roomId, {
-            $push: { bookedStudents: studentEmail } // or use user._id if you prefer tracking by ID
-        });
-
-        // 5. Send back the booking and populate roomId so frontend gets the keyMoney immediately
-        const populatedBooking = await Booking.findById(booking._id).populate('roomId');
-
-        res.status(201).json({ success: true, data: populatedBooking });
-
-    } catch (error) {
-        // Handle Mongoose validation errors (NIC format, Phone length, etc.)
-        if (error.name === 'ValidationError') {
-            const messages = Object.values(error.errors).map(val => val.message);
-            return res.status(400).json({ success: false, message: messages.join(', ') });
-        }
-        res.status(500).json({ success: false, message: error.message });
+    if (existingBooking) {
+      return res.status(400).json({ 
+        message: 'You already have an active or pending room booking. You cannot book multiple rooms.' 
+      });
     }
+
+    // 🔥 SAVING THE REAL name AND email TO THE DATABASE
+    const newBooking = await Booking.create({
+      studentId: userId, 
+      studentEmail: email, // Saved real email
+      studentName: name,   // Saved real name
+      roomId: room._id,
+      roomNumber: room.roomNumber,
+      agreedToTerms: true,
+      nicNumber,
+      emergencyContactName,
+      emergencyContactPhone,
+      expectedMoveInDate,
+      specialRequests,
+      status: 'Pending Approval',
+      paymentStatus: 'Unpaid'
+    });
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: { 
+            currency: 'lkr', 
+            product_data: { name: `Key Money (Refundable Deposit) - Room ${room.roomNumber}` }, 
+            unit_amount: room.keyMoney * 100 
+          }, 
+          quantity: 1 
+        },
+        {
+          price_data: { 
+            currency: 'lkr', 
+            product_data: { name: `First Month Rent - Room ${room.roomNumber}` }, 
+            unit_amount: room.monthlyRent * 100 
+          }, 
+          quantity: 1 
+        },
+      ],
+      mode: 'payment',
+      success_url: `http://localhost:5173/payment-success/${newBooking._id}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:5173/book/${roomId}`, 
+    });
+
+    newBooking.stripeSessionId = session.id;
+    await newBooking.save();
+
+    res.status(200).json({ url: session.url });
+
+  } catch (error) {
+    console.error("Stripe Error:", error);
+    res.status(500).json({ message: error.message });
+  }
 };
 
-// @desc    Get booking for the logged-in student
-export const getMyBooking = async (req, res) => {
-    try {
-        const { email } = req.params; 
-        
-        // Populate 'roomId' is essential to get the keyMoney and monthlyFee data
-        const booking = await Booking.findOne({ studentEmail: email }).populate('roomId');
+// ==========================================
+// 2. VERIFY PAYMENT & CREATE INVOICE
+// ==========================================
+export const verifyPayment = async (req, res) => {
+  try {
+    const { bookingId, stripeSessionId } = req.body;
+    
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
-        if (!booking) {
-            return res.status(200).json({ success: true, data: null }); 
-        }
-
-        res.status(200).json({ success: true, data: booking });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Server Error: Unable to fetch booking.' });
+    if (booking.paymentStatus === 'Paid') {
+      return res.json({ success: true, message: 'Payment was already verified.' });
     }
+
+    const room = await Room.findById(booking.roomId);
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+
+    booking.paymentStatus = 'Paid';
+    booking.status = 'Confirmed';
+    booking.stripeSessionId = stripeSessionId; 
+    
+    const startDate = booking.expectedMoveInDate ? new Date(booking.expectedMoveInDate) : new Date();
+    booking.paidUntil = startDate; 
+    await booking.save();
+
+    room.currentOccupancy = (room.currentOccupancy || 0) + 1; 
+    if (room.currentOccupancy >= room.maxCapacity) {
+      room.status = 'Full';
+    }
+    await room.save();
+
+    const firstMonthName = startDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+    await Invoice.create({
+      studentId: booking.studentId,
+      studentEmail: booking.studentEmail,
+      studentName: booking.studentName,
+      roomNumber: booking.roomNumber,
+      description: `First Month Rent & Key Money (Room ${booking.roomNumber})`,
+      monthName: firstMonthName, 
+      amount: (room.monthlyRent || 0) + (room.keyMoney || 0),
+      status: 'Paid',
+      stripeSessionId: stripeSessionId,
+      paidAt: new Date()
+    });
+
+    res.json({ success: true, message: 'Payment verified and room secured!' });
+  } catch (error) {
+    console.error("Verification Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ==========================================
+// 3. GET USER BOOKING STATUS (For Dashboard)
+// ==========================================
+export const getUserBookingStatus = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const booking = await Booking.findOne({ 
+      studentId: userId, 
+      status: { $in: ['Confirmed', 'Active'] } 
+    });
+
+    res.json({ hasBooking: !!booking, booking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ==========================================
+// 4. GET ROOM OCCUPANTS (For Admin Panel)
+// ==========================================
+export const getOccupantsByRoom = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ 
+      roomId: req.params.roomId,
+      status: { $in: ['Confirmed', 'Active'] }
+    }).lean(); 
+
+    for (let booking of bookings) {
+      const invoices = await Invoice.find({ studentId: booking.studentId });
+      booking.invoices = invoices; 
+    }
+
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

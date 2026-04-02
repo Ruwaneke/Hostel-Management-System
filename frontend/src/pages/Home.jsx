@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+// 1. IMPORT YOUR AUTH CONTEXT TO CHECK IF USER IS LOGGED IN
 import { useAuth } from '../context/AuthContext'; 
-
-// --- CONFIGURATION ---
-const API_URL = 'http://localhost:5025/api/rooms/available';
-const FRONTEND_URL = "http://localhost:5173";
 
 const features = [
   { icon: '🛏️', title: 'Room Management', desc: 'Efficiently allocate and track available, occupied, and reserved rooms in real time.', color: 'indigo' },
@@ -42,16 +39,19 @@ const steps = [
 export default function Home() {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth(); // Check if student is logged in
+  
+  // 2. SETUP NAVIGATION AND AUTH
+  const navigate = useNavigate();
+  const { user } = useAuth(); // Pulls the current user from your context
 
-  // ── FETCH LIVE ROOM DATA ────────────────────────────────────────────
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const res = await axios.get(API_URL);
-        setRooms(res.data.data);
-      } catch (err) {
-        console.error("Error fetching rooms:", err);
+        const response = await axios.get('http://localhost:5025/api/rooms');
+        const availableRooms = response.data.filter(room => room.display === true && room.status === 'Available');
+        setRooms(availableRooms.slice(0, 6)); 
+      } catch (error) {
+        console.error("Error fetching rooms for homepage:", error);
       } finally {
         setLoading(false);
       }
@@ -59,42 +59,43 @@ export default function Home() {
     fetchRooms();
   }, []);
 
-  // FIXED IMAGE LOGIC
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    const correctedPath = path.replace('/uploads/', '/roomImage/');
-    const finalPath = correctedPath.startsWith('/') ? correctedPath : `/${correctedPath}`;
-    return `${FRONTEND_URL}${finalPath}`;
+  // 3. BOOK NOW CLICK HANDLER
+  const handleBookNow = (roomId) => {
+    if (user) {
+      // User is logged in -> Go to the specific booking page
+      navigate(`/book/${roomId}`); 
+    } else {
+      // User is NOT logged in -> Send them to login page first
+      navigate('/login');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#E5E5E5] text-black font-sans">
+    <div className="min-h-screen bg-[#e5e5e5] text-black">
       <Navbar />
 
       {/* ── HERO ──────────────────────────────────────────── */}
-      <section className="bg-[#14213D] text-[#E5E5E5] relative overflow-hidden border-b border-white/5">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#FCA311]/5 rounded-full translate-x-1/3 -translate-y-1/4 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#E5E5E5]/5 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl pointer-events-none" />
+      <section className="bg-brand-navy text-brand-platinum relative overflow-hidden border-b border-brand-white/5">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-gold/5 rounded-full translate-x-1/3 -translate-y-1/4 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-platinum/5 rounded-full -translate-x-1/3 translate-y-1/3 blur-3xl pointer-events-none" />
         <div className="max-w-7xl mx-auto px-6 py-28 flex flex-col lg:flex-row items-center gap-12 relative z-10">
-          
           {/* Text */}
           <div className="flex-1 text-center lg:text-left">
-            <span className="inline-block bg-white/10 backdrop-blur-md border border-white/10 text-[#FCA311] text-sm font-bold px-5 py-2 rounded-full mb-8 shadow-lg">
+            <span className="inline-block bg-brand-white/10 backdrop-blur-md border border-brand-white/10 text-brand-gold text-sm font-bold px-5 py-2 rounded-full mb-8 shadow-lg">
               ✨ Modern Hostel Management
             </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight mb-8 text-white tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold leading-tight mb-8 text-brand-white tracking-tight">
               Smart Hostel<br />
-              <span className="text-[#FCA311] drop-shadow-sm">All in One Platform</span>
+              <span className="text-brand-gold drop-shadow-sm">All in One Platform</span>
             </h1>
-            <p className="text-[#E5E5E5]/80 text-lg lg:text-xl mb-10 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed">
+            <p className="text-brand-platinum/80 text-lg lg:text-xl mb-10 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed">
               Streamline room allocation, payments, laundry, complaints, and meals — all from a beautifully crafted dashboard.
             </p>
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-              <Link to="/register" className="bg-[#FCA311] hover:bg-[#e5920f] text-black font-extrabold px-8 py-3.5 rounded-xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
+              <Link to="/register" className="bg-brand-gold hover:bg-[#e5920f] text-brand-black font-extrabold px-8 py-3.5 rounded-xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-0.5">
                 Get Started Free
               </Link>
-              <Link to="/login" className="bg-white/5 hover:bg-white/10 text-white font-bold px-8 py-3.5 rounded-xl border border-white/20 transition-all backdrop-blur-sm shadow-lg">
+              <Link to="/login" className="bg-brand-white/5 hover:bg-brand-white/10 text-brand-white font-bold px-8 py-3.5 rounded-xl border border-brand-white/20 transition-all backdrop-blur-sm shadow-lg">
                 Sign In →
               </Link>
             </div>
@@ -117,112 +118,125 @@ export default function Home() {
       </section>
 
       {/* ── STATS ─────────────────────────────────────────── */}
-      <section className="bg-[#000000] text-[#FFFFFF] border-b border-white/5 relative z-20">
+      <section className="bg-brand-black text-brand-white border-b border-brand-white/5 relative z-20">
         <div className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col items-center">
-              <div className="text-4xl font-black text-[#FCA311] mb-2">{s.value}</div>
-              <div className="text-[#E5E5E5]/70 text-sm font-bold uppercase tracking-wider">{s.label}</div>
+              <div className="text-4xl font-black text-brand-gold mb-2">{s.value}</div>
+              <div className="text-brand-platinum/70 text-sm font-bold uppercase tracking-wider">{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── LIVE ROOM GALLERY (Integrated Logic) ────────────────── */}
-      <section id="rooms" className="max-w-7xl mx-auto px-6 py-28">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16">
-          <div>
-            <h2 className="text-4xl font-black text-[#14213D] tracking-tight">Available Premium Spaces</h2>
-            <p className="text-gray-500 mt-2 text-lg font-medium">Real-time availability for our high-end hostel blocks.</p>
-          </div>
-          {user ? (
-            <Link to="/rooms" className="text-[#14213D] font-black hover:text-[#FCA311] transition-colors border-b-2 border-[#14213D] pb-1 mt-4 md:mt-0">View All Rooms →</Link>
-          ) : (
-            <div className="bg-[#14213D] text-[#FCA311] px-6 py-2 rounded-full text-sm font-black uppercase tracking-wider shadow-lg mt-4 md:mt-0">Login to Book</div>
-          )}
+      {/* ── ROOM GALLERY (UPGRADED UI) ──────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-black mb-4 tracking-tight">
+            Premium Living Spaces
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto font-medium">
+            Browse our available hostel rooms. Filtered for comfort, security, and an excellent study environment.
+          </p>
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-24">
-            <div className="w-16 h-16 border-4 border-[#14213D]/10 border-t-[#FCA311] rounded-full animate-spin"></div>
+          <div className="flex justify-center items-center h-48">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-navy border-t-brand-gold"></div>
+          </div>
+        ) : rooms.length === 0 ? (
+          <div className="text-center bg-white rounded-3xl p-16 shadow-sm border border-slate-200">
+            <div className="text-6xl mb-4">📭</div>
+            <h3 className="text-2xl font-black text-slate-800 mb-2">No Rooms Available Yet</h3>
+            <p className="text-slate-500 font-medium">We are currently at full capacity or updating our listings. Check back soon!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {rooms.length > 0 ? rooms.slice(0, 6).map((room) => {
-               const availableSlots = room.capacity - (room.bookedStudents?.length || 0);
-
-               return (
-                <div key={room._id} className="bg-white rounded-[2.5rem] overflow-hidden border border-gray-200 shadow-sm hover:shadow-2xl transition-all duration-500 group">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {rooms.map((room) => (
+              <div key={room._id} className="group bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-slate-100 overflow-hidden flex flex-col relative">
+                
+                {/* Image & Top Badges */}
+                <div className="relative h-64 bg-slate-100 overflow-hidden">
+                  {room.image ? (
+                    <img src={`/roomImage/${room.image}`} alt={`Room ${room.roomNumber}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-6xl">🛏️</div>
+                  )}
                   
-                  {/* Photo Section */}
-                  <div className="relative h-72 bg-gray-200 overflow-hidden">
-                    {room.photos && room.photos[0] ? (
-                      <img 
-                        src={getImageUrl(room.photos[0])} 
-                        alt="Room" 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="%23e5e5e5"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23666" font-family="sans-serif" font-size="16">Image Not Found</text></svg>';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold">📷 No Image</div>
-                    )}
-                    
-                    <div className="absolute top-5 left-5 flex gap-2">
-                        <span className="bg-white/95 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-black text-[#14213D] shadow-md uppercase tracking-widest">Block {room.block}</span>
-                        {room.isAC && <span className="bg-[#FCA311] px-4 py-1.5 rounded-full text-[10px] font-black text-[#14213D] shadow-md uppercase">❄️ AC</span>}
-                    </div>
-                    <div className="absolute bottom-5 right-5 bg-[#14213D] text-[#FCA311] px-5 py-2 rounded-2xl text-sm font-black shadow-xl">
-                      Rs.{room.monthlyFee?.toLocaleString()} /mo
-                    </div>
+                  {/* Dark Gradient Overlay for text pop */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-5 right-5">
+                    <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-full shadow-lg border border-emerald-400/50">
+                      {room.status}
+                    </span>
                   </div>
 
-                  {/* Details Section */}
-                  <div className="p-8">
-                    <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <h3 className="text-2xl font-black text-[#14213D] mb-1">Room {room.roomNumber}</h3>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{room.roomType} Suite</p>
-                      </div>
-                      <span className={`text-[10px] uppercase font-black px-4 py-2 rounded-full shadow-inner ${availableSlots > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                        {availableSlots} Beds Left
+                  {/* Room Title over Image */}
+                  <div className="absolute bottom-5 left-6 right-6 flex justify-between items-end">
+                    <div>
+                      <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg border border-white/30 mb-2 inline-block shadow-sm">
+                        Block {room.block}
                       </span>
+                      <h3 className="text-4xl font-black text-white drop-shadow-md leading-none">
+                        {room.roomNumber}
+                      </h3>
                     </div>
-
-                    {/* Furnishing Grid */}
-                    <div className="grid grid-cols-3 gap-2 bg-[E5E5E5#]/30 p-4 rounded-3xl mb-8 border border-gray-100">
-                      <div className="flex flex-col items-center"><span className="text-xl">🛏️</span><span className="text-[10px] font-black text-gray-500 mt-2">{room.beds} Beds</span></div>
-                      <div className="flex flex-col items-center"><span className="text-xl">🪵</span><span className="text-[10px] font-black text-gray-500 mt-2">{room.tables} Tables</span></div>
-                      <div className="flex flex-col items-center"><span className="text-xl">🪑</span><span className="text-[10px] font-black text-gray-500 mt-2">{room.chairs} Chairs</span></div>
-                    </div>
-
-                    {user ? (
-                      <Link to={`/room-details/${room._id}`} className="block text-center bg-[#14213D] text-[#FCA311] font-black py-4 rounded-2xl transition-all hover:bg-[#FCA311] hover:text-[#14213D] shadow-lg hover:shadow-2xl transform group-hover:-translate-y-1">
-                        View Details & Book
-                      </Link>
-                    ) : (
-                      <Link to="/login" className="block text-center bg-white border-2 border-dashed border-gray-300 text-gray-400 font-bold py-4 rounded-2xl transition hover:bg-[#E5E5E5]/50">
-                        Login to Access Booking
-                      </Link>
-                    )}
                   </div>
                 </div>
-              );
-            }) : (
-              <div className="col-span-full py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-300 text-gray-400">
-                <div className="text-6xl mb-6">🏘️</div>
-                <h3 className="text-2xl font-black text-[#14213D]">All Rooms Currently Occupied</h3>
-                <p className="font-medium">Check back soon for upcoming vacancies.</p>
+                
+                {/* Details Body */}
+                <div className="p-7 flex-1 flex flex-col">
+                  
+                  {/* Price Row */}
+                  <div className="flex justify-between items-center mb-6 pb-6 border-b border-slate-100">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Room Type</p>
+                      <p className="text-sm font-black text-slate-700">{room.roomType}</p>
+                    </div>
+                    <div className="text-right bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
+                      <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Monthly Rent</p>
+                      <p className="text-2xl font-black text-blue-700">Rs. {room.monthlyRent?.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Amenities Quick Grid */}
+                  <div className="grid grid-cols-3 gap-3 mb-8 text-center">
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <div className="text-xl mb-1">🚻</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase">{room.designatedGender}</div>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <div className="text-xl mb-1">❄️</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase">{room.airConditioning}</div>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <div className="text-xl mb-1">👥</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase">{room.maxCapacity} Max</div>
+                    </div>
+                  </div>
+
+                  {/* 4. BOOK NOW BUTTON (Triggers the logic) */}
+                  <div className="mt-auto">
+                    <button 
+                      onClick={() => handleBookNow(room._id)}
+                      className="w-full bg-brand-navy hover:bg-slate-800 text-white font-bold py-4 rounded-2xl transition-all duration-300 shadow-md flex items-center justify-center gap-2 group-hover:bg-brand-gold group-hover:text-brand-black group-hover:shadow-brand-gold/20 group-hover:shadow-lg"
+                    >
+                      <span className="text-lg">Book Room</span>
+                      <span className="text-xl leading-none transition-transform group-hover:translate-x-1">→</span>
+                    </button>
+                  </div>
+
+                </div>
               </div>
-            )}
+            ))}
           </div>
         )}
       </section>
 
       {/* ── FEATURES ──────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
+      <section className="max-w-7xl mx-auto px-6 py-20 bg-[#e5e5e5]">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-black mb-3">
             Everything You Need
@@ -248,22 +262,22 @@ export default function Home() {
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────── */}
-      <section className="bg-[#E5E5E5]/50 py-24 border-y border-gray-300">
+      <section className="bg-brand-platinum/20 py-24 border-y border-brand-platinum/50">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-black text-[#14213D] mb-4 tracking-tight">How It Works</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-brand-navy mb-4 tracking-tight">How It Works</h2>
             <p className="text-slate-500 font-medium text-lg">Get up and running in 3 simple steps.</p>
           </div>
           <div className="grid sm:grid-cols-3 gap-8 relative">
             {/* Connecting Line */}
-            <div className="hidden sm:block absolute top-1/2 left-10 right-10 h-0.5 bg-gray-300 -z-10 -translate-y-[45px]"></div>
+            <div className="hidden sm:block absolute top-1/2 left-10 right-10 h-0.5 bg-brand-platinum -z-10 -translate-y-[45px]"></div>
             
             {steps.map((s) => (
-              <div key={s.step} className="bg-white rounded-3xl p-8 shadow-xl text-center border border-gray-200 relative z-10 transition-transform hover:-translate-y-1">
-                <div className="w-16 h-16 bg-[#14213D] text-[#FCA311] rounded-full flex items-center justify-center font-black text-2xl mx-auto mb-6 shadow-lg ring-4 ring-white">
+              <div key={s.step} className="bg-brand-white rounded-3xl p-8 shadow-xl text-center border border-brand-platinum/30 relative z-10 transition-transform hover:-translate-y-1">
+                <div className="w-16 h-16 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-black text-2xl mx-auto mb-6 shadow-lg ring-4 ring-brand-white">
                   {s.step}
                 </div>
-                <h3 className="font-bold text-[#14213D] text-xl mb-3">{s.title}</h3>
+                <h3 className="font-bold text-brand-navy text-xl mb-3">{s.title}</h3>
                 <p className="text-slate-500 text-sm font-medium leading-relaxed">{s.desc}</p>
               </div>
             ))}
@@ -273,24 +287,24 @@ export default function Home() {
 
       {/* ── TESTIMONIAL ───────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-6 py-24 text-center">
-        <h2 className="text-3xl sm:text-4xl font-black text-[#14213D] mb-14 tracking-tight">What Our Users Say</h2>
+        <h2 className="text-3xl sm:text-4xl font-black text-brand-navy mb-14 tracking-tight">What Our Users Say</h2>
         <div className="grid sm:grid-cols-2 gap-8">
           {[
             { name: 'Ahmed R.', role: 'Student', text: 'HostelMS made paying my fees and tracking laundry so much easier. Love the premium interface, it feels incredibly modern.' },
             { name: 'Sara K.', role: 'Admin', text: 'Managing 120 rooms used to be a nightmare. Now everything is just one click away. Absolutely incredible tool.' },
           ].map((t) => (
-            <div key={t.name} className="bg-white border border-gray-200 rounded-3xl p-8 shadow-lg text-left relative">
-              <div className="absolute top-8 right-8 text-6xl text-gray-200 font-serif leading-none">"</div>
+            <div key={t.name} className="bg-brand-white border border-brand-platinum/50 rounded-3xl p-8 shadow-lg text-left relative">
+              <div className="absolute top-8 right-8 text-6xl text-brand-platinum/40 font-serif leading-none">"</div>
               <p className="text-slate-600 font-medium italic mb-8 relative z-10 leading-relaxed text-lg text-pretty">
                 {t.text}
               </p>
               <div className="flex items-center gap-4 relative z-10">
-                <div className="w-12 h-12 bg-[#14213D] text-[#FCA311] rounded-full flex items-center justify-center font-bold text-xl shadow-md">
+                <div className="w-12 h-12 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-bold text-xl shadow-md">
                   {t.name[0]}
                 </div>
                 <div>
-                  <div className="font-extrabold text-[#14213D]">{t.name}</div>
-                  <div className="text-sm font-semibold text-[#FCA311] uppercase tracking-wider">{t.role}</div>
+                  <div className="font-extrabold text-brand-navy">{t.name}</div>
+                  <div className="text-sm font-semibold text-brand-gold uppercase tracking-wider">{t.role}</div>
                 </div>
               </div>
             </div>
@@ -299,18 +313,18 @@ export default function Home() {
       </section>
 
       {/* ── CTA ───────────────────────────────────────────── */}
-      <section className="bg-[#14213D] text-white py-24 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 w-full h-full bg-[#FCA311]/5 -translate-x-1/2 blur-3xl pointer-events-none rounded-[100%]" />
+      <section className="bg-brand-navy text-brand-white py-24 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 w-full h-full bg-brand-gold/5 -translate-x-1/2 blur-3xl pointer-events-none rounded-[100%]" />
         <div className="max-w-3xl mx-auto px-6 text-center relative z-10">
           <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">Ready to Upgrade?</h2>
-          <p className="text-[#E5E5E5] text-lg md:text-xl font-medium mb-10 text-balance opacity-90">
+          <p className="text-brand-platinum text-lg md:text-xl font-medium mb-10 text-balance opacity-90">
             Join hundreds of visionary students and admins revolutionizing campus living with HostelMS.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/register" className="bg-[#FCA311] hover:bg-[#e5920f] text-black font-extrabold px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1">
+            <Link to="/register" className="bg-brand-gold hover:bg-[#e5920f] text-brand-black font-extrabold px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1">
               Create Free Account
             </Link>
-            <Link to="/contact" className="bg-white/5 hover:bg-white/10 text-white font-bold px-8 py-4 rounded-xl border border-white/20 transition-all backdrop-blur-sm">
+            <Link to="/contact" className="bg-brand-white/5 hover:bg-brand-white/10 text-brand-white font-bold px-8 py-4 rounded-xl border border-brand-white/20 transition-all backdrop-blur-sm">
               Contact Sales
             </Link>
           </div>
@@ -318,18 +332,18 @@ export default function Home() {
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────── */}
-      <footer className="bg-[#000000] text-[#E5E5E5] py-12 border-t border-white/10">
+      <footer className="bg-brand-black text-brand-platinum py-12 border-t border-brand-white/10">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2 text-[#FCA311] font-black text-2xl tracking-tight">
+          <div className="flex items-center gap-2 text-brand-gold font-black text-2xl tracking-tight">
             <span>🏠</span><span>HostelMS</span>
           </div>
           <div className="flex gap-8 text-sm font-semibold">
-            <Link to="/contact" className="hover:text-[#FCA311] transition-colors">Contact</Link>
-            <Link to="/faq" className="hover:text-[#FCA311] transition-colors">FAQ</Link>
-            <Link to="/register" className="hover:text-[#FCA311] transition-colors">Register</Link>
-            <Link to="/login" className="hover:text-[#FCA311] transition-colors">Login</Link>
+            <Link to="/contact" className="hover:text-brand-gold transition-colors">Contact</Link>
+            <Link to="/faq" className="hover:text-brand-gold transition-colors">FAQ</Link>
+            <Link to="/register" className="hover:text-brand-gold transition-colors">Register</Link>
+            <Link to="/login" className="hover:text-brand-gold transition-colors">Login</Link>
           </div>
-          <p className="text-sm text-[#E5E5E5]/50 font-medium">© {new Date().getFullYear()} HostelMS. All rights reserved.</p>
+          <p className="text-sm text-brand-platinum/50 font-medium">© {new Date().getFullYear()} HostelMS. All rights reserved.</p>
         </div>
       </footer>
     </div>

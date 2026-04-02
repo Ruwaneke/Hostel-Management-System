@@ -1,8 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
-
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -14,27 +13,28 @@ import Unauthorized from './pages/Unauthorized';
 import CreateComplaint from './pages/CreateComplaint';
 import UserComplaints from './pages/UserComplaints';
 import AdminComplaints from './pages/AdminComplaints';
-import AIChatbot from './components/AIChatbot';
+import './index.css';
 
-function SmartChatbot() {
-  const location = useLocation();
-  const hideOnPages = ['/login', '/register', '/admin-dashboard', '/unauthorized', '/admin-complaints'];
+// Booking Pages
+import UserBookingCheckout from './pages/RoomAllocation/UserBookingCheckout';
+import PaymentSuccess from './pages/RoomAllocation/PaymentSuccess'; 
 
-  if (hideOnPages.includes(location.pathname)) return null;
+// Laundry Pages
+import LaundrySuccess from './pages/Londary/LaundrySuccess';
 
-  return <AIChatbot />;
-}
+// --- NEW CHATBOT IMPORT ---
+import Chatbot from './components/Chatbot';
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ToastProvider>
-
-          <SmartChatbot />
-
+          {/* Routes define which component to show based on the URL.
+              The Chatbot is placed outside Routes so it persists everywhere.
+          */}
           <Routes>
-            {/* Public */}
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -42,7 +42,31 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
 
-            {/* USER ROUTES (FIXED ROLE) */}
+            {/* Student Protected Routes */}
+            <Route
+              path="/book/:roomId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <UserBookingCheckout />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment-success/:bookingId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/laundry-success"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <LaundrySuccess />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/user-dashboard"
               element={
@@ -68,7 +92,7 @@ function App() {
               }
             />
 
-            {/* ADMIN ROUTES */}
+            {/* Admin Protected Routes */}
             <Route
               path="/admin-dashboard"
               element={
@@ -88,6 +112,9 @@ function App() {
 
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+
+          {/* --- SMART HOSTEL ASSISTANT WIDGET --- */}
+          <Chatbot />
 
         </ToastProvider>
       </AuthProvider>

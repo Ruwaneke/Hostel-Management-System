@@ -10,6 +10,8 @@ export default function CreateComplaint() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const [formData, setFormData] = useState({
+    roomNumber: '',
+    hostelBlock: '',
     title: '',
     description: '',
     category: 'Electrical',
@@ -41,6 +43,16 @@ export default function CreateComplaint() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate room number
+    if (!formData.roomNumber?.trim()) {
+      return toast.warning('Validation Error', 'Please enter your room number.');
+    }
+
+    // Validate hostel block
+    if (!formData.hostelBlock?.trim()) {
+      return toast.warning('Validation Error', 'Please enter your hostel block.');
+    }
+
     if (!formData.description?.trim()) {
       return toast.warning('Validation Error', 'Please describe the issue in detail.');
     }
@@ -61,8 +73,10 @@ export default function CreateComplaint() {
     
     try {
       const submissionData = new FormData();
-      submissionData.append('title', formData.title);
-      submissionData.append('description', formData.description);
+      submissionData.append('roomNumber', formData.roomNumber.trim());
+      submissionData.append('hostelBlock', formData.hostelBlock.trim());
+      submissionData.append('title', formData.title.trim());
+      submissionData.append('description', formData.description.trim());
       submissionData.append('category', formData.category);
       submissionData.append('priority', formData.priority);
       if (imageFile) {
@@ -109,6 +123,43 @@ export default function CreateComplaint() {
 
           <form onSubmit={handleSubmit} className="space-y-8">
             
+            {/* Room Number and Hostel Block Section */}
+            <div>
+              <label className="block text-brand-navy font-black text-lg mb-4 tracking-tight">
+                Location Details <span className="text-rose-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Room Number <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="roomNumber"
+                    value={formData.roomNumber}
+                    onChange={handleChange}
+                    placeholder="E.g., 204"
+                    maxLength="20"
+                    className="w-full px-5 py-4 bg-brand-platinum/10 border border-brand-platinum/30 rounded-2xl text-brand-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold transition-all shadow-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Hostel Block <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="hostelBlock"
+                    value={formData.hostelBlock}
+                    onChange={handleChange}
+                    placeholder="E.g., Block A"
+                    maxLength="50"
+                    className="w-full px-5 py-4 bg-brand-platinum/10 border border-brand-platinum/30 rounded-2xl text-brand-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Category */}
             <div>
               <label className="block text-brand-navy font-black text-lg mb-4 tracking-tight">

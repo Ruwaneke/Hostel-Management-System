@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 export const ProtectedRoute = ({ children, requiredRole = null }) => {
   const { user, token, loading } = useAuth();
 
-  // Wait until auth is ready
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -17,18 +16,16 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
     );
   }
 
-  // Not authenticated
+  // Check if token exists
   if (!token || !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" />;
   }
 
-  // Role-based access
+  // Check role if required
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-
-    // IMPORTANT: backend uses "user", NOT "student"
     if (!roles.includes(user.role)) {
-      return <Navigate to="/unauthorized" replace />;
+      return <Navigate to="/unauthorized" />;
     }
   }
 

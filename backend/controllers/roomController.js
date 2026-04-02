@@ -1,147 +1,102 @@
 import Room from '../models/Room.js';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Helper to delete images from the backend/uploads folder
-const deleteImagesFromDisk = (photoPaths) => {
-    photoPaths.forEach(photoPath => {
-        // Ensure this path matches where your multer saves files
-        const fullPath = path.join(process.cwd(), 'uploads', path.basename(photoPath));
-        if (fs.existsSync(fullPath)) {
-            try {
-                fs.unlinkSync(fullPath);
-            } catch (err) {
-                console.error("Error deleting file:", fullPath, err);
-            }
-        }
-    });
-};
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-export const addRoom = async (req, res) => {
+export const createRoom = async (req, res) => {
   try {
-    const { block, roomNumber, roomType, capacity, isAC, features, keyMoney, monthlyFee, beds, tables, chairs } = req.body;
-    
-    // Store path as it will be served (e.g., /uploads/filename.jpg)
-    const photoPaths = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
-
-    if (!roomNumber || !roomType || !capacity || !keyMoney || !monthlyFee || !beds || photoPaths.length === 0) {
-      return res.status(400).json({ success: false, message: 'Please fill all required fields and upload images.' });
-    }
+    const { 
+      block, roomNumber, floorLevel, roomType, designatedGender, 
+      airConditioning, bathroomType, furnishing, hasBalcony, 
+      bedCount, tableCount, chairCount, 
+      monthlyRent, keyMoney, maxCapacity, description, status, display 
+    } = req.body;
 
     const roomExists = await Room.findOne({ roomNumber });
-    if (roomExists) return res.status(400).json({ success: false, message: 'Room number already exists.' });
+    if (roomExists) return res.status(400).json({ message: "Room number already exists" });
 
-    const featuresArray = typeof features === 'string' && features.trim() !== '' 
-        ? features.split(',').map(f => f.trim()) 
-        : (Array.isArray(features) ? features : []);
+    let imageName = '';
+    if (req.file) imageName = req.file.filename; 
 
     const room = await Room.create({
-        block, 
-        roomNumber, 
-        roomType, 
-        capacity,
-        isAC: isAC === 'true' || isAC === true, 
-        beds, 
-        tables: tables || 0, 
-        chairs: chairs || 0,
-        features: featuresArray, 
-        keyMoney, 
-        monthlyFee, 
-        photos: photoPaths
+      block, roomNumber, floorLevel, roomType, designatedGender, 
+      airConditioning, bathroomType, 
+      furnishing: furnishing ? furnishing.split(',') : [], 
+      hasBalcony, bedCount, tableCount, chairCount, 
+      monthlyRent, keyMoney, maxCapacity, description, status,
+      display: display === 'true', // Convert string to boolean
+      image: imageName 
     });
 
-    res.status(201).json({ success: true, data: room });
+    res.status(201).json({ message: "Room created successfully", room });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ message: "Error creating room", error: error.message });
   }
 };
 
-export const getAllRoomsAdmin = async (req, res) => {
+export const getAllRooms = async (req, res) => {
   try {
-    const rooms = await Room.find().sort({ createdAt: -1 }); 
-    res.status(200).json({ success: true, count: rooms.length, data: rooms });
+    const rooms = await Room.find({});
+    res.status(200).json(rooms);
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server Error' });
-  }
-};
-
-export const getAvailableRoomsStudent = async (req, res) => {
-  try {
-    // Logic to find rooms where there are still slots available
-    const rooms = await Room.find();
-    const availableRooms = rooms.filter(room => room.capacity > room.bookedStudents.length);
-    res.status(200).json({ success: true, count: availableRooms.length, data: availableRooms });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Server Error' });
+    res.status(500).json({ message: "Error fetching rooms", error: error.message });
   }
 };
 
 export const getRoomById = async (req, res) => {
-    try {
-        const room = await Room.findById(req.params.id);
-        if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
-        res.status(200).json({ success: true, data: room });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Server Error' });
-    }
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) return res.status(404).json({ message: "Room not found" });
+    res.status(200).json(room);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching room", error: error.message });
+  }
 };
 
 export const updateRoom = async (req, res) => {
-    try {
-        let room = await Room.findById(req.params.id);
-        if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) return res.status(404).json({ message: "Room not found" });
 
-        const { block, roomNumber, roomType, capacity, isAC, features, keyMoney, monthlyFee, beds, tables, chairs } = req.body;
-
-        let featuresArray = room.features;
-        if (features !== undefined) {
-            featuresArray = typeof features === 'string' ? features.split(',').map(f => f.trim()) : features;
-        }
-
-        let photoPaths = room.photos;
-        if (req.files && req.files.length > 0) {
-            deleteImagesFromDisk(room.photos); // Clean up old photos
-            photoPaths = req.files.map(file => `/uploads/${file.filename}`);
-        }
-
-        const updatedRoom = await Room.findByIdAndUpdate(req.params.id, {
-            block: block || room.block,
-            roomNumber: roomNumber || room.roomNumber,
-            roomType: roomType || room.roomType,
-            capacity: capacity || room.capacity,
-            isAC: isAC !== undefined ? (isAC === 'true' || isAC === true) : room.isAC,
-            beds: beds || room.beds,
-            tables: tables !== undefined ? tables : room.tables,
-            chairs: chairs !== undefined ? chairs : room.chairs,
-            features: featuresArray,
-            keyMoney: keyMoney || room.keyMoney,
-            monthlyFee: monthlyFee || room.monthlyFee,
-            photos: photoPaths
-        }, { new: true, runValidators: true });
-
-        res.status(200).json({ success: true, data: updatedRoom });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+    if (req.file) {
+      req.body.image = req.file.filename;
+      if (room.image) {
+        const oldImagePath = path.join(__dirname, '../../frontend/public/roomImage', room.image);
+        if (fs.existsSync(oldImagePath)) fs.unlinkSync(oldImagePath);
+      }
     }
+
+    if (req.body.furnishing && typeof req.body.furnishing === 'string') {
+        req.body.furnishing = req.body.furnishing.split(',');
+    }
+    
+    if (req.body.display !== undefined) {
+        req.body.display = req.body.display === 'true';
+    }
+
+    const updatedRoom = await Room.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json({ message: "Room updated successfully", room: updatedRoom });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating room", error: error.message });
+  }
 };
 
 export const deleteRoom = async (req, res) => {
-    try {
-        const room = await Room.findById(req.params.id);
-        if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) return res.status(404).json({ message: "Room not found" });
 
-        if (room.bookedStudents && room.bookedStudents.length > 0) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Cannot delete a room that has students. Please unallocate all students first.' 
-            });
-        }
-
-        deleteImagesFromDisk(room.photos);
-        await room.deleteOne();
-
-        res.status(200).json({ success: true, message: 'Room deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Server Error' });
+    if (room.image) {
+      const imagePath = path.join(__dirname, '../../frontend/public/roomImage', room.image);
+      if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
     }
+
+    await room.deleteOne();
+    res.status(200).json({ message: "Room deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting room", error: error.message });
+  }
 };

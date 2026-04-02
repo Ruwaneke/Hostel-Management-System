@@ -1,12 +1,25 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import AdminSidebar from "./adminSidebar"; 
-import RoomManage from "./roomAllocation/roomManage";
 import AdminComplaints from "./AdminComplaints";
 import AdminFeedback from "./AdminFeedback";
+import AdminRooms from "./RoomAllocation/AdminRooms"; 
+import AdminPayments from "./RoomAllocation/AdminPayments"; 
 
-// --- DATA ARRAYS ---
+// --- NEW IMPORT FOR LAUNDRY MANAGEMENT ---
+import AdminLaundry from "./RoomAllocation/AdminLaundry";
+
+const menuItems = [
+  { id: "dashboard",  label: "Dashboard",  icon: "" },
+  { id: "users",      label: "Users",      icon: "" },
+  { id: "rooms",      label: "Rooms",      icon: "" },
+  { id: "payments",   label: "Payments",   icon: "" },
+  { id: "laundry",    label: "Laundry",    icon: "" },
+  { id: "complaints", label: "Complaints", icon: "" },
+  { id: "meals",      label: "Meals",      icon: "" },
+  { id: "feedback",   label: "Feedback",   icon: "" },
+];
+
 const stats = [
   { label: "Total Rooms",    value: 48,  icon: "🛏️", color: "navy" },
   { label: "Occupied",       value: 35,  icon: "👥",  color: "emerald"  },
@@ -21,9 +34,40 @@ const colorCls = {
   rose:    { border: "border-rose-500",    text: "text-rose-700",    bg: "bg-rose-50"    },
 };
 
+const statusColor = {
+  Active:       "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Admin:        "bg-[#14213d] bg-opacity-10 text-[#14213d]",
+  Paid:         "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Pending:      "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Overdue:      "bg-red-100 text-red-700",
+  "In Progress":"bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Ready:        "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Delivered:    "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Open:         "bg-red-100 text-red-700",
+  Resolved:     "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Available:    "bg-[#fca311] bg-opacity-20 text-[#fca311]",
+  Occupied:     "bg-red-100 text-red-700",
+};
+
+const Badge = ({ s }) => (
+  <span className={"px-2.5 py-0.5 rounded-full text-xs font-semibold " + (statusColor[s] || "bg-slate-100 text-slate-600")}>
+    {s}
+  </span>
+);
+
+const usersData    = [
+  { name: "Alice Johnson", email: "alice@example.com", role: "user",  room: "101", status: "Active" },
+  { name: "Bob Smith",     email: "bob@example.com",   role: "user",  room: "102", status: "Active" },
+  { name: "Carol White",   email: "carol@example.com", role: "admin", room: "",   status: "Admin"  },
+];
+
+const TH = ({ children }) => <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{children}</th>;
+const TD = ({ children }) => <td className="px-4 py-3 text-sm text-slate-700 border-t border-slate-100">{children}</td>;
+
 export default function AdminDashboard() {
   const [active, setActive]       = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+
   const { user, logout }          = useAuth();
   const navigate                  = useNavigate();
 
@@ -31,35 +75,33 @@ export default function AdminDashboard() {
 
   const renderContent = () => {
     switch (active) {
-      case "dashboard": 
+      case "dashboard":
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
             <div>
-              <h2 className="text-3xl font-black text-slate-800 tracking-tight">Dashboard Overview ✨</h2>
-              <p className="text-slate-500 font-medium text-sm mt-1">Welcome back, {user?.name || "Admin"}!</p>
+              <h2 className="text-2xl font-black text-brand-navy tracking-tight">Dashboard Overview ✨</h2>
+              <p className="text-slate-500 font-medium text-sm mt-1">Welcome back, {user?.name}!</p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map(s => {
-                const c = colorCls[s.color] || colorCls.navy;
+                const c = colorCls[s.color];
                 return (
-                  <div key={s.label} className={"bg-white rounded-3xl shadow-sm border-l-4 p-6 hover:shadow-md transition-all " + c.border}>
+                  <div key={s.label} className={"bg-brand-white rounded-3xl shadow-sm border-l-4 p-5 hover:shadow-md transition-shadow " + c.border}>
                     <div className={"w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 " + c.bg}>{s.icon}</div>
                     <div className={"text-3xl font-black " + c.text}>{s.value}</div>
-                    <div className="text-slate-500 text-sm mt-1 font-bold">{s.label}</div>
+                    <div className="text-slate-500 text-sm mt-1 font-semibold">{s.label}</div>
                   </div>
                 );
               })}
             </div>
-
-            <div className="bg-slate-900 rounded-[2rem] p-10 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl pointer-events-none" />
-              <h3 className="font-extrabold text-yellow-500 text-xl mb-8 relative z-10 uppercase tracking-widest">Today at a Glance</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative z-10">
+            <div className="bg-brand-navy rounded-3xl p-8 text-brand-platinum shadow-lg border border-brand-white/10 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-gold/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl pointer-events-none" />
+              <h3 className="font-extrabold text-brand-gold text-xl mb-6 relative z-10">Today at a Glance</h3>
+              <div className="grid grid-cols-3 gap-6 text-center mt-4 relative z-10">
                 {[["8","Open Tickets"],["3","Pending Payments"],["2","Laundry Ready"]].map(([v, l]) => (
-                  <div key={l} className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-md hover:bg-white/10 transition-colors">
-                    <div className="text-4xl font-black text-white">{v}</div>
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">{l}</div>
+                  <div key={l} className="bg-brand-white/5 border border-brand-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                    <div className="text-3xl font-black text-brand-white">{v}</div>
+                    <div className="text-sm font-semibold text-brand-platinum/70 uppercase tracking-wider mt-2">{l}</div>
                   </div>
                 ))}
               </div>
@@ -68,42 +110,42 @@ export default function AdminDashboard() {
         );
 
       case "users":
-        return <div className="p-12 text-center bg-white rounded-3xl shadow-sm">
-                 <span className="text-4xl mb-4 block">👥</span>
-                 <h2 className="text-xl font-bold">User Management</h2>
-                 <p className="text-slate-500">Module under development.</p>
-               </div>;
-
-      // --- ONLY THIS BLOCK WAS UPDATED TO MATCH YOUR DASHBOARD STYLE ---
-      case "rooms":
-      case "roomManage": 
         return (
-          <div className="bg-white rounded-[2rem] shadow-sm overflow-hidden h-full flex flex-col border border-slate-100">
-            <div className="flex-1 overflow-y-auto">
-              <RoomManage />
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-slate-800">User Management</h2>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-slate-50"><tr><TH>Name</TH><TH>Email</TH><TH>Role</TH><TH>Room</TH><TH>Status</TH></tr></thead>
+                <tbody>
+                  {usersData.map(u => (
+                    <tr key={u.email} className="hover:bg-slate-50 transition">
+                      <TD><div className="flex items-center gap-2"><div className="w-7 h-7 text-white rounded-full flex items-center justify-center text-xs font-bold" style={{backgroundColor: "#14213d"}}>{u.name[0]}</div>{u.name}</div></TD>
+                      <TD>{u.email}</TD>
+                      <TD><Badge s={u.role === "admin" ? "Admin" : "Active"} /></TD>
+                      <TD>{u.room}</TD>
+                      <TD><Badge s={u.status} /></TD>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         );
-      // ----------------------------------------------------------------
+
+      case "rooms":
+        return <AdminRooms />;
 
       case "payments":
-        return <div className="p-12 text-center bg-white rounded-3xl shadow-sm">
-                 <span className="text-4xl mb-4 block">💳</span>
-                 <h2 className="text-xl font-bold">Payment Management</h2>
-                 <p className="text-slate-500">Module under development.</p>
-               </div>;
+        return <AdminPayments />;
 
+      // --- REPLACED: NOW LOADS OUR NEW ADMIN LAUNDRY COMPONENT ---
       case "laundry":
-        return <div className="p-12 text-center bg-white rounded-3xl shadow-sm">
-                 <span className="text-4xl mb-4 block">🧺</span>
-                 <h2 className="text-xl font-bold">Laundry Management</h2>
-                 <p className="text-slate-500">Module under development.</p>
-               </div>;
+        return <AdminLaundry />;
 
       case "complaints":
         return (
-          <div className="bg-white rounded-[2rem] shadow-sm overflow-hidden h-full flex flex-col border border-slate-100">
-            <div className="flex-1 overflow-y-auto p-6">
+          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
               <AdminComplaints isEmbedded={true} />
             </div>
           </div>
@@ -111,69 +153,93 @@ export default function AdminDashboard() {
 
       case "feedback":
         return (
-          <div className="bg-white rounded-[2rem] shadow-sm overflow-hidden h-full flex flex-col border border-slate-100">
-            <div className="flex-1 overflow-y-auto p-6">
+          <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
               <AdminFeedback isEmbedded={true} />
             </div>
           </div>
         );
 
-      case "meals":
-        return <div className="p-12 text-center bg-white rounded-3xl shadow-sm">
-                 <span className="text-4xl mb-4 block">🍽️</span>
-                 <h2 className="text-xl font-bold">Meal Records</h2>
-                 <p className="text-slate-500">Module under development.</p>
-               </div>;
-
-      default: 
-        return null;
+      default: return null;
     }
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-900">
-      
-      {/* Sidebar Component */}
-      <AdminSidebar 
-        collapsed={collapsed} 
-        active={active} 
-        setActive={setActive} 
-        handleLogout={handleLogout} 
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+    <div className="flex h-screen bg-brand-platinum/20 overflow-hidden text-brand-black">
+      {/* Sidebar */}
+      <aside className={"flex flex-col bg-brand-navy text-brand-platinum border-r border-brand-white/10 transition-all duration-300 relative z-20 shadow-2xl " + (collapsed ? "w-20" : "w-64")}>
+        <div className="flex items-center gap-3 px-6 py-6 border-b border-brand-white/10">
+          <span className="text-3xl flex-shrink-0 drop-shadow-sm">🏠</span>
+          {!collapsed && <span className="font-black text-xl text-brand-gold tracking-tight">HostelMS</span>}
+        </div>
+        <nav className="flex-1 py-6 space-y-2 px-3 overflow-y-auto custom-scrollbar">
+          {menuItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActive(item.id)}
+              title={collapsed ? item.label : ""}
+              className={"w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all " +
+                (active === item.id
+                  ? "bg-brand-gold text-brand-black shadow-lg shadow-brand-gold/20"
+                  : "text-brand-platinum/80 hover:bg-brand-white/5 hover:text-brand-gold")}
+            >
+              <span className={"text-xl flex-shrink-0 " + (active !== item.id && "opacity-70")}>{"→"}</span>
+              {!collapsed && <span>{item.label}</span>}
+            </button>
+          ))}
+        </nav>
         
+        {/* BOTTOM ACTIONS (Added Home button for Admin too!) */}
+        <div className="px-3 pb-6 border-t border-brand-white/10 pt-4 space-y-2">
+          <button
+            onClick={() => navigate("/")}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-sky-400 hover:bg-sky-500/10 hover:text-sky-300 transition-all"
+          >
+            <span className="flex-shrink-0 text-xl opacity-80">🌐</span>
+            {!collapsed && <span>Go to Home</span>}
+          </button>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all"
+          >
+            <span className="flex-shrink-0 text-xl opacity-80">🚪</span>
+            {!collapsed && <span>Logout</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 bg-brand-platinum/10">
         {/* Topbar */}
-        <header className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between flex-shrink-0 z-10">
-          <div className="flex items-center gap-6">
+        <header className="bg-brand-white border-b border-brand-platinum/50 px-8 py-4 flex items-center justify-between flex-shrink-0 relative z-10 shadow-sm">
+          <div className="flex items-center gap-5">
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-600 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-brand-platinum/30 text-brand-navy transition-colors"
             >
-              <span className="text-2xl">☰</span>
+              <span className="text-xl">☰</span>
             </button>
             <div>
-              <h1 className="font-black text-slate-800 text-xl tracking-tight">
-                {active.charAt(0).toUpperCase() + active.slice(1)}
+              <h1 className="font-extrabold text-brand-navy text-xl tracking-tight flex items-center gap-2">
+                {menuItems.find(m => m.id === active)?.label}
               </h1>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">Hostel Admin Portal</p>
+              <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider mt-0.5">Admin Panel</p>
             </div>
           </div>
-
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-black text-slate-800">{user?.name || "Administrator"}</p>
-              <p className="text-[10px] font-bold text-yellow-600 uppercase tracking-widest">Master Admin</p>
+              <p className="text-sm font-black text-brand-navy">{user?.name}</p>
+              <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider">Administrator</p>
             </div>
-            <div className="w-11 h-11 bg-slate-900 text-yellow-500 rounded-2xl flex items-center justify-center font-black text-lg shadow-lg rotate-3 hover:rotate-0 transition-transform cursor-pointer">
+            <div className="w-11 h-11 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-bold text-lg shadow-inner ring-2 ring-brand-platinum/50">
               {user?.name?.charAt(0).toUpperCase() || "A"}
             </div>
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
-        <main className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[#FBFBFE]">
+        {/* Content */}
+        <main className="flex-1 overflow-y-auto p-6">
           {renderContent()}
         </main>
       </div>

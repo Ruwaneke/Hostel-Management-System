@@ -7,29 +7,26 @@ import helmet from 'helmet';
 import mongoose from 'mongoose';
 import path from 'path';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
-
-// Route Imports
 import authRoutes from './routes/authRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import laundryRoutes from './routes/laundryRoutes.js';
 import complaintRoutes from './routes/complaintRoutes.js';
 import mealRoutes from './routes/mealRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
-import userRoutes from './routes/userRoutes.js'; 
-import bookingRoutes from './routes/bookingRoutes.js';
-import paymentroomRoutes from './routes/paymentroomRoutes.js'; // Stripe Initial/Rent Routes
-import chatRoutes from './routes/chatRoutes.js';
+import userRoutes from './routes/userRoutes.js'; // For testing only, to be removed later
+import chatbotRoutes from './routes/chatbotRoutes.js';
 
-import { startCronJobs } from './utils/cronJobs.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
 
 const app = express();
 
-// CORS configuration
 const AllowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
     : ['http://localhost:5173'];
 
-app.use(helmet({ crossOriginResourcePolicy: false })); 
+app.use(helmet({ crossOriginResourcePolicy: false })); // Allow loading images
 app.use(cors({ origin: AllowedOrigins, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -47,22 +44,21 @@ app.get('/health', (req, res) => {
     });
 });
 
-// ── Routes ────────────────────────────────────────────────────────────────────
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/laundry', laundryRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/feedback', feedbackRoutes);
-app.use('/api/users', userRoutes); 
-app.use('/api/chat', chatRoutes);
+
 app.use('/api/bookings', bookingRoutes);
-
-// FIXED: Only use the Stripe payment routes to avoid conflict
-app.use('/api/payments', paymentroomRoutes); 
-
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 // ── Error Handling ────────────────────────────────────────────────────────────
-startCronJobs();
+
+// Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 
