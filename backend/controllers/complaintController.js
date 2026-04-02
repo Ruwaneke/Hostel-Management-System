@@ -728,3 +728,24 @@ export const getSLABreachedComplaints = async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 };
+export default {
+  createComplaint,
+  getAllComplaints,
+  getComplaintById,
+  updateComplaint,
+  deleteComplaint,
+  getComplaints,
+  getComplaint,
+  submitComplaint,
+  getMyComplaints,
+  markNotificationsRead,
+  submitFeedback,
+  assignComplaint,
+  rejectComplaint,
+  updateProgress,
+  completeComplaint,
+  getReports,
+  getSLABreachedComplaints,
+  getComplaintsByCategory,
+  getComplaintsByStatus
+};
