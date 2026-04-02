@@ -1,6 +1,9 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
+// 1. IMPORT YOUR AUTH CONTEXT TO CHECK IF USER IS LOGGED IN
+import { useAuth } from '../context/AuthContext'; 
 
 const features = [
   { icon: '🛏️', title: 'Room Management', desc: 'Efficiently allocate and track available, occupied, and reserved rooms in real time.', color: 'indigo' },
@@ -34,6 +37,39 @@ const steps = [
 ];
 
 export default function Home() {
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // 2. SETUP NAVIGATION AND AUTH
+  const navigate = useNavigate();
+  const { user } = useAuth(); // Pulls the current user from your context
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      try {
+        const response = await axios.get('http://localhost:5025/api/rooms');
+        const availableRooms = response.data.filter(room => room.display === true && room.status === 'Available');
+        setRooms(availableRooms.slice(0, 6)); 
+      } catch (error) {
+        console.error("Error fetching rooms for homepage:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRooms();
+  }, []);
+
+  // 3. BOOK NOW CLICK HANDLER
+  const handleBookNow = (roomId) => {
+    if (user) {
+      // User is logged in -> Go to the specific booking page
+      navigate(`/book/${roomId}`); 
+    } else {
+      // User is NOT logged in -> Send them to login page first
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#e5e5e5] text-black">
       <Navbar />
@@ -93,8 +129,114 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── ROOM GALLERY (UPGRADED UI) ──────────────────────── */}
+      <section className="max-w-7xl mx-auto px-6 py-24">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-5xl font-extrabold text-black mb-4 tracking-tight">
+            Premium Living Spaces
+          </h2>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto font-medium">
+            Browse our available hostel rooms. Filtered for comfort, security, and an excellent study environment.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-48">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-navy border-t-brand-gold"></div>
+          </div>
+        ) : rooms.length === 0 ? (
+          <div className="text-center bg-white rounded-3xl p-16 shadow-sm border border-slate-200">
+            <div className="text-6xl mb-4">📭</div>
+            <h3 className="text-2xl font-black text-slate-800 mb-2">No Rooms Available Yet</h3>
+            <p className="text-slate-500 font-medium">We are currently at full capacity or updating our listings. Check back soon!</p>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {rooms.map((room) => (
+              <div key={room._id} className="group bg-white rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-slate-100 overflow-hidden flex flex-col relative">
+                
+                {/* Image & Top Badges */}
+                <div className="relative h-64 bg-slate-100 overflow-hidden">
+                  {room.image ? (
+                    <img src={`/roomImage/${room.image}`} alt={`Room ${room.roomNumber}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 text-6xl">🛏️</div>
+                  )}
+                  
+                  {/* Dark Gradient Overlay for text pop */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent"></div>
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-5 right-5">
+                    <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-wider px-4 py-2 rounded-full shadow-lg border border-emerald-400/50">
+                      {room.status}
+                    </span>
+                  </div>
+
+                  {/* Room Title over Image */}
+                  <div className="absolute bottom-5 left-6 right-6 flex justify-between items-end">
+                    <div>
+                      <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg border border-white/30 mb-2 inline-block shadow-sm">
+                        Block {room.block}
+                      </span>
+                      <h3 className="text-4xl font-black text-white drop-shadow-md leading-none">
+                        {room.roomNumber}
+                      </h3>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Details Body */}
+                <div className="p-7 flex-1 flex flex-col">
+                  
+                  {/* Price Row */}
+                  <div className="flex justify-between items-center mb-6 pb-6 border-b border-slate-100">
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Room Type</p>
+                      <p className="text-sm font-black text-slate-700">{room.roomType}</p>
+                    </div>
+                    <div className="text-right bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
+                      <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Monthly Rent</p>
+                      <p className="text-2xl font-black text-blue-700">Rs. {room.monthlyRent?.toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Amenities Quick Grid */}
+                  <div className="grid grid-cols-3 gap-3 mb-8 text-center">
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <div className="text-xl mb-1">🚻</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase">{room.designatedGender}</div>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <div className="text-xl mb-1">❄️</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase">{room.airConditioning}</div>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <div className="text-xl mb-1">👥</div>
+                      <div className="text-[10px] font-bold text-slate-500 uppercase">{room.maxCapacity} Max</div>
+                    </div>
+                  </div>
+
+                  {/* 4. BOOK NOW BUTTON (Triggers the logic) */}
+                  <div className="mt-auto">
+                    <button 
+                      onClick={() => handleBookNow(room._id)}
+                      className="w-full bg-brand-navy hover:bg-slate-800 text-white font-bold py-4 rounded-2xl transition-all duration-300 shadow-md flex items-center justify-center gap-2 group-hover:bg-brand-gold group-hover:text-brand-black group-hover:shadow-brand-gold/20 group-hover:shadow-lg"
+                    >
+                      <span className="text-lg">Book Room</span>
+                      <span className="text-xl leading-none transition-transform group-hover:translate-x-1">→</span>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* ── FEATURES ──────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-6 py-20">
+      <section className="max-w-7xl mx-auto px-6 py-20 bg-[#e5e5e5]">
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-black mb-3">
             Everything You Need

@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AdminComplaints from "./AdminComplaints";
 import AdminFeedback from "./AdminFeedback";
+import AdminRooms from "./RoomAllocation/AdminRooms"; 
+import AdminPayments from "./RoomAllocation/AdminPayments"; 
+
+// --- NEW IMPORT FOR LAUNDRY MANAGEMENT ---
+import AdminLaundry from "./RoomAllocation/AdminLaundry";
 
 const menuItems = [
   { id: "dashboard",  label: "Dashboard",  icon: "" },
@@ -54,27 +59,6 @@ const usersData    = [
   { name: "Alice Johnson", email: "alice@example.com", role: "user",  room: "101", status: "Active" },
   { name: "Bob Smith",     email: "bob@example.com",   role: "user",  room: "102", status: "Active" },
   { name: "Carol White",   email: "carol@example.com", role: "admin", room: "",   status: "Admin"  },
-];
-const roomsData    = [
-  { room: "101", type: "Single", floor: "1st", capacity: 1, status: "Occupied"  },
-  { room: "102", type: "Double", floor: "1st", capacity: 2, status: "Occupied"  },
-  { room: "201", type: "Single", floor: "2nd", capacity: 1, status: "Available" },
-  { room: "202", type: "Triple", floor: "2nd", capacity: 3, status: "Available" },
-];
-const paymentsData = [
-  { student: "Alice Johnson", amount: "$450", month: "March 2026",    status: "Paid"    },
-  { student: "Bob Smith",     amount: "$450", month: "March 2026",    status: "Pending" },
-  { student: "David Lee",     amount: "$450", month: "February 2026", status: "Overdue" },
-];
-const laundryData  = [
-  { student: "Alice Johnson", items: 5, submitted: "Today 9:00 AM",  status: "In Progress" },
-  { student: "Bob Smith",     items: 3, submitted: "Today 8:30 AM",  status: "Ready"        },
-  { student: "Carol White",   items: 7, submitted: "Yesterday",      status: "Delivered"    },
-];
-const complaintsData = [
-  { student: "Alice Johnson", issue: "Broken AC in room 101",       date: "Mar 7", status: "Open"        },
-  { student: "Bob Smith",     issue: "Hot water not working",       date: "Mar 6", status: "Resolved"    },
-  { student: "David Lee",     issue: "Lights flickering room 205",  date: "Mar 5", status: "In Progress" },
 ];
 
 const TH = ({ children }) => <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{children}</th>;
@@ -149,63 +133,14 @@ export default function AdminDashboard() {
         );
 
       case "rooms":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Room Management</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Room</TH><TH>Type</TH><TH>Floor</TH><TH>Capacity</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {roomsData.map(r => (
-                    <tr key={r.room} className="hover:bg-slate-50 transition">
-                      <TD><span className="font-semibold">Room {r.room}</span></TD>
-                      <TD>{r.type}</TD><TD>{r.floor}</TD><TD>{r.capacity} person(s)</TD>
-                      <TD><Badge s={r.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+        return <AdminRooms />;
 
       case "payments":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Payment Management</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Student</TH><TH>Amount</TH><TH>Month</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {paymentsData.map((p, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD>{p.student}</TD><TD className="font-semibold">{p.amount}</TD><TD>{p.month}</TD><TD><Badge s={p.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+        return <AdminPayments />;
 
+      // --- REPLACED: NOW LOADS OUR NEW ADMIN LAUNDRY COMPONENT ---
       case "laundry":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Laundry Management</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Student</TH><TH>Items</TH><TH>Submitted</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {laundryData.map((l, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD>{l.student}</TD><TD>{l.items} pcs</TD><TD>{l.submitted}</TD><TD><Badge s={l.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+        return <AdminLaundry />;
 
       case "complaints":
         return (
@@ -253,7 +188,17 @@ export default function AdminDashboard() {
             </button>
           ))}
         </nav>
-        <div className="px-3 pb-6 border-t border-brand-white/10 pt-4">
+        
+        {/* BOTTOM ACTIONS (Added Home button for Admin too!) */}
+        <div className="px-3 pb-6 border-t border-brand-white/10 pt-4 space-y-2">
+          <button
+            onClick={() => navigate("/")}
+            className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-sky-400 hover:bg-sky-500/10 hover:text-sky-300 transition-all"
+          >
+            <span className="flex-shrink-0 text-xl opacity-80">🌐</span>
+            {!collapsed && <span>Go to Home</span>}
+          </button>
+
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all"
@@ -264,7 +209,7 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 bg-brand-platinum/10">
         {/* Topbar */}
         <header className="bg-brand-white border-b border-brand-platinum/50 px-8 py-4 flex items-center justify-between flex-shrink-0 relative z-10 shadow-sm">
@@ -288,7 +233,7 @@ export default function AdminDashboard() {
               <p className="text-xs font-semibold text-brand-gold uppercase tracking-wider">Administrator</p>
             </div>
             <div className="w-11 h-11 bg-brand-navy text-brand-gold rounded-full flex items-center justify-center font-bold text-lg shadow-inner ring-2 ring-brand-platinum/50">
-              {user?.name?.charAt(0).toUpperCase()}
+              {user?.name?.charAt(0).toUpperCase() || "A"}
             </div>
           </div>
         </header>

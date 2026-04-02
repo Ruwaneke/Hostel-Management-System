@@ -85,7 +85,8 @@ export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validation
+        console.log("LOGIN REQUEST:", email, password);
+
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
@@ -93,17 +94,19 @@ export const login = async (req, res) => {
             });
         }
 
-        // Find user and include password field
-        const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
+        const user = await User.findOne({
+            email: email.toLowerCase().trim()
+        }).select('+password');
+
+        console.log("USER FOUND:", user);
 
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password'
+                message: 'User not found. Please register first.'
             });
         }
 
-        // Check if user is active
         if (!user.isActive) {
             return res.status(403).json({
                 success: false,
@@ -111,31 +114,32 @@ export const login = async (req, res) => {
             });
         }
 
-        // Check password match
-        const isPasswordMatch = await user.matchPassword(password);
+        const isMatch = await user.matchPassword(password);
 
-        if (!isPasswordMatch) {
+        console.log("PASSWORD MATCH:", isMatch);
+
+        if (!isMatch) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password'
+                message: 'Invalid password'
             });
         }
 
         const token = signToken(user);
 
-        // Send user without password
         const userResponse = user.toObject();
         delete userResponse.password;
 
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: 'Login successful',
             token,
             user: userResponse
         });
+
     } catch (error) {
         console.error('Login error:', error);
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
             message: error.message || 'Login failed'
         });
