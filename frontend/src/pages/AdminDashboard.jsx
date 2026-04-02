@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AdminComplaints from "./AdminComplaints";
 import AdminFeedback from "./AdminFeedback";
+import AdminTable from '../components/AdminTable'; 
 
 const menuItems = [
   { id: "dashboard",  label: "Dashboard",  icon: "" },
@@ -83,6 +84,39 @@ const TD = ({ children }) => <td className="px-4 py-3 text-sm text-slate-700 bor
 export default function AdminDashboard() {
   const [active, setActive]       = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
+    const [laundryData, setLaundryData] = useState([
+    {
+      id: 1,
+      userName: "Alice Johnson",
+      serviceType: "Laundry",
+      date: "2026-04-01",
+      timeSlot: "9:00 AM",
+      location: "Room 101",
+      status: "In Progress",
+      addons: []
+    },
+    {
+      id: 2,
+      userName: "Bob Smith",
+      serviceType: "Laundry",
+      date: "2026-04-01",
+      timeSlot: "8:30 AM",
+      location: "Room 102",
+      status: "Ready for Pickup",
+      addons: []
+    },
+    {
+      id: 3,
+      userName: "Carol White",
+      serviceType: "Laundry",
+      date: "2026-03-31",
+      timeSlot: "All Day",
+      location: "Room 103",
+      status: "Delivered",
+      addons: ["Extra Detergent"]
+    }
+  ]);
+
 
   const { user, logout }          = useAuth();
   const navigate                  = useNavigate();
@@ -189,23 +223,19 @@ export default function AdminDashboard() {
         );
 
       case "laundry":
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-800">Laundry Management</h2>
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <table className="w-full">
-                <thead className="bg-slate-50"><tr><TH>Student</TH><TH>Items</TH><TH>Submitted</TH><TH>Status</TH></tr></thead>
-                <tbody>
-                  {laundryData.map((l, i) => (
-                    <tr key={i} className="hover:bg-slate-50 transition">
-                      <TD>{l.student}</TD><TD>{l.items} pcs</TD><TD>{l.submitted}</TD><TD><Badge s={l.status} /></TD>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
+         return (
+           <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30 p-6">
+           <h2 className="text-xl font-bold text-slate-800 mb-4">Laundry Management</h2>
+           <AdminTable
+             bookings={laundryData}
+             onStatusUpdate={(id, newStatus) => {
+             setLaundryData(prev =>
+            prev.map(b => b.id === id ? { ...b, status: newStatus } : b)
+             );
+             }}
+      />
+    </div>
+  );
 
       case "complaints":
         return (
