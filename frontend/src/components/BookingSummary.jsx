@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiCheck, FiX } from 'react-icons/fi';
-import { useBookings } from '../context/BookingContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useNavigate } from 'react-router-dom';
 
 const PRICE_PER_PIECE = 50.00;
 
@@ -25,28 +25,43 @@ export default function BookingSummary({ bookingSummaryData, onEdit, onConfirm, 
     bookingFee,
     grandTotal,
   } = bookingSummaryData;
+  const navigate = useNavigate();
 
-  const handleConfirmBooking = async () => {
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+const handleConfirmBooking = async () => {
+  setIsSubmitting(true);
 
-    const booking = {
-      userName: fullName,
-      serviceType: selectedServiceName,
-      pieces,
-      date: date?.toISOString().split('T')[0],
-      timeSlot,
-      location,
-      addons: (selectedAddonNames ?? []).map(a => a.name),
-      totalAmount: grandTotal,
-      email,
-      telephone,
-    };
-
-    //addNotification('Booking confirmed successfully!', 'success');
-    setIsSubmitting(false);
-    onConfirm();
+  const booking = {
+    fullName,
+    email,
+    telephone,
+    service: selectedServiceName,
+    pieces,
+    date: date?.toISOString().split("T")[0],
+    timeSlot,
+    location,
+    addons: (selectedAddonNames ?? []).map(a => a.name),
+    totalAmount: grandTotal,
   };
+  try {
+    const res = await fetch("http://localhost:5025/api/laundry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(booking),
+    });
+    if (!res.ok) throw new Error("Booking failed");
+
+    addNotification("Booking confirmed successfully!", "success");
+    navigate("/payment", { state: { booking : bookingSummaryData} });
+    onConfirm(bookingSummaryData);
+  } catch (error) {
+    console.error(error);
+    addNotification("Unable to save booking. Proceeding anyway.", "error");
+  } finally {
+    setIsSubmitting(false);
+    
+   
+  }
+};
 
   return (
     <motion.div
