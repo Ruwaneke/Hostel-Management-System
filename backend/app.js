@@ -6,7 +6,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 
-import paymentRoutes from "./routes/payment.route.js";
 
 import path from 'path';
 
@@ -14,7 +13,7 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import roomRoutes from './routes/roomRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
-import laundryRoutes from './routes/laundryRoutes.js';
+import laundryRoutes from "./routes/laundryRoutes.js";
 import complaintRoutes from './routes/complaintRoutes.js';
 import mealRoutes from './routes/mealRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
@@ -27,15 +26,12 @@ const AllowedOrigins = process.env.ALLOWED_ORIGINS
     : ['http://localhost:5173'];
 
 
-app.use(cors({ origin: AllowedOrigins, credentials:true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended:true}));
-app.use("/api/payment", paymentRoutes);
-
-app.use(helmet({ crossOriginResourcePolicy: false })); // Allow loading images
 app.use(cors({ origin: AllowedOrigins, credentials: true }));
+app.use(helmet({ crossOriginResourcePolicy: false }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 
 
 // Serve static uploads folder
@@ -51,14 +47,14 @@ app.get('/health', (req, res) => {
     });
 });
 
-
-// Add your routes here 
-app.use("/api/payments", paymentRoutes);
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB error:", err));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/laundry', laundryRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/meals', mealRoutes);
