@@ -1,30 +1,33 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { GiWashingMachine, GiTShirt } from 'react-icons/gi';
-import { useBookings } from '../context/BookingContext';
+//import { useBookings } from '../context/BookingContext';
 import { useNotifications } from '../context/NotificationContext';
-import { CURRENT_USER } from '../constants/currentUser';
+
 
 const PRICE_PER_PIECE = 50.00;
 const BOOKING_FEE = 100.00;
 
 export default function BookingForm({ onBack, onSummary }) {
-  const { addBooking } = useBookings();
+  const { user } = useAuth();
+  //const { addBooking } = useBookings();
   const { addNotification } = useNotifications();
 
-  const [formData, setFormData] = useState({
-    fullName: CURRENT_USER.name,
-    email: CURRENT_USER.email,
+const [formData, setFormData] = useState({
+    fullName: user?.name || '',
+    email: user?.email || '',
     telephone: '',
     service: '',
     pieces: 1,
     date: null,
     timeSlot: '',
-    location: CURRENT_USER.roomNumber,
+    location: user?.roomNumber || '',
     addons: []
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const serviceOptions = [
