@@ -1,5 +1,7 @@
 import { Complaint } from "../models/Complaint.js";
 import { User } from "../models/User.js";
+import Booking from "../models/Booking.js";
+import Room from "../models/Room.js";
 
 /**
  * @desc    Create a new complaint
@@ -297,7 +299,10 @@ const addNotification = (complaint, message) => {
 
 export const submitComplaint = async (req, res) => {
     try {
-        const { category, description, priority, title, roomNumber, hostelBlock } = req.body;
+        const { category, description, priority, title } = req.body;
+        const userId = req.user.id;
+
+        console.log("🚀 Starting complaint submission for userId:", userId);
 
         // Build image URL (if file uploaded)
         let imageUrl = req.body.imageUrl || null;
@@ -306,9 +311,8 @@ export const submitComplaint = async (req, res) => {
         }
 
         // Get user details from DB
-        const dbUser = await User.findById(req.user.id).select(
-            'userId name email'
-        );
+        const dbUser = await User.findById(userId).select('userId name email');
+        console.log("✅ User found:", dbUser ? `${dbUser.name} (${dbUser.email})` : "NOT FOUND");
 
         if (!dbUser) {
             return res.status(404).json({
@@ -325,29 +329,53 @@ export const submitComplaint = async (req, res) => {
             });
         }
 
-        // Validate room number and hostel block from form input
-        if (!roomNumber || !roomNumber.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: 'Room number is required.'
-            });
+        // Fetch student's active booking with room details
+        console.log("🔍 Searching for booking with studentId:", userId, "and status: Confirmed");
+        
+        const booking = await Booking.findOne({ 
+            studentId: userId,
+            status: 'Confirmed'
+        }).populate('roomId');
+
+        console.log("📋 Booking found:", booking ? "YES" : "NO");
+        if (booking) {
+            console.log("   - Booking ID:", booking._id);
+            console.log("   - Student Name:", booking.studentName);
+            console.log("   - Room Number (from booking):", booking.roomNumber);
+            console.log("   - Room ID (populated):", booking.roomId ? booking.roomId._id : "NOT FOUND");
         }
 
-        if (!hostelBlock || !hostelBlock.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: 'Hostel block is required.'
+        // Extract room number and block from booking and room models
+        let roomNumber = '';
+        let hostelBlock = '';
+
+        if (booking && booking.roomId) {
+            roomNumber = booking.roomNumber;
+            hostelBlock = booking.roomId.block;
+            
+            console.log("🏠 Room details extracted:");
+            console.log("   - Room Number:", roomNumber);
+            console.log("   - Hostel Block:", hostelBlock);
+            console.log("   - Full Room Data:", {
+                roomId: booking.roomId._id,
+                block: booking.roomId.block,
+                roomNumber: booking.roomId.roomNumber,
+                floor: booking.roomId.floorLevel
             });
+        } else {
+            console.log("⚠️  WARNING: No active booking found for this student");
         }
 
-        // Create student object with form data
+        // Create student object with fetched data
         const student = {
             userId: dbUser.userId || String(dbUser._id),
             name: dbUser.name,
             email: dbUser.email,
-            roomNumber: roomNumber.trim(),
-            hostelBlock: hostelBlock.trim()
+            roomNumber: roomNumber,
+            hostelBlock: hostelBlock
         };
+
+        console.log("📝 Creating complaint with student data:", student);
 
         const complaint = new Complaint({
             student,
@@ -374,7 +402,13 @@ export const submitComplaint = async (req, res) => {
             complaint,
             'Your complaint has been submitted successfully. We will review it shortly.'
         );
+        
         await complaint.save();
+
+        console.log("✨ Complaint created successfully!");
+        console.log("   - Complaint ID:", complaint._id);
+        console.log("   - Room Number:", complaint.student.roomNumber);
+        console.log("   - Hostel Block:", complaint.student.hostelBlock);
 
         res.status(201).json({
             success: true,
@@ -383,7 +417,13 @@ export const submitComplaint = async (req, res) => {
             data: complaint
         });
     } catch (err) {
-        res.status(500).json({ success: false, message: err.message });
+        console.error("❌ Error creating complaint:", err.message);
+        console.error("Stack trace:", err.stack);
+        
+        res.status(500).json({ 
+            success: false, 
+            message: err.message 
+        });
     }
 };
 
