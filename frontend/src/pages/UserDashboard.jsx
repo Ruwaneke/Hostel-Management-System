@@ -189,7 +189,7 @@ export default function UserDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Image & Main Info */}
               <div className="lg:col-span-1 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="h-64 bg-slate-200 relative">
+                <div className="h-100 bg-slate-200 relative">
                   {roomData.image ? (
                     <img src={`/roomImage/${roomData.image}`} className="w-full h-full object-cover" alt="My Room" />
                   ) : (

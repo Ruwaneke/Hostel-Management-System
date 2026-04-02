@@ -119,7 +119,7 @@ export default function AdminRooms() {
         </div>
         <button 
           onClick={() => setView('add')}
-          className="relative z-10 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+          className="relative z-10 bg-[#14213d] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#0f1829] hover:shadow-lg hover:shadow-[#14213d]/30 hover:-translate-y-0.5 transition-all flex items-center gap-2"
         >
           <span className="text-xl leading-none">+</span> Add Room
         </button>
