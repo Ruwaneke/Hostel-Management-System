@@ -1,40 +1,22 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const laundrySchema = new mongoose.Schema(
-    {
-        student: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: [true, 'Student reference is required']
-        },
-        bags: {
-            type: Number,
-            required: [true, 'Number of bags is required'],
-            min: [1, 'At least 1 bag is required'],
-            max: [5, 'Maximum 5 bags per request']
-        },
-        items: {
-            type: String,
-            trim: true
-        },
-        pickupDate: {
-            type: Date,
-            required: [true, 'Pickup date is required']
-        },
-        returnDate: {
-            type: Date
-        },
-        status: {
-            type: String,
-            enum: ['pending', 'picked-up', 'washing', 'ready', 'delivered'],
-            default: 'pending'
-        },
-        notes: {
-            type: String,
-            trim: true
-        }
-    },
-    { timestamps: true }
-);
+const laundrySchema = new mongoose.Schema({
+  fullName: { type: String, required: true, trim: true },
+  email: { type: String, required: true, trim: true },
+  telephone: { type: String, required: true },
 
-export const Laundry = mongoose.model('Laundry', laundrySchema);
+  service: { type: String, required: true }, // Washing / Ironing / Both
+  pieces: { type: Number, required: true, min: 1, max: 8 },
+
+  date: { type: String, required: true }, // ISO string (YYYY-MM-DD)
+  timeSlot: { type: String, required: true },
+
+  location: { type: String, required: true },
+
+  addons: [{ type: String }], // ["Express Service", "Folding Service"]
+
+  totalAmount: { type: Number, required: true, min: 0 },
+
+}, { timestamps: true });
+
+export default mongoose.model("Laundry", laundrySchema);
