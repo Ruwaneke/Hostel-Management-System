@@ -1,30 +1,51 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { jsPDF } from 'jspdf';
-import { FiCheckCircle, FiDownload, FiX, FiFileText } from 'react-icons/fi';
+import { FiCheckCircle, FiDownload, FiFileText } from 'react-icons/fi';
 import { useBookings } from '../context/BookingContext';
 import { useNavigate } from 'react-router-dom';
 
-const PaymentModal = ({ payment, onClose }) => {
+const PaymentModal = ({ payment, onClose, onPaymentComplete }) => {
   const navigate = useNavigate();
   const { addBooking, savePayment } = useBookings();
 
-  const handleClose = () => {
+  // ✅ Updated handleClose — saves payment to backend before closing
+  const handleClose = async () => {
+    try {
+      await fetch('http://localhost:5025/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount:      payment.amount,
+          method:      payment.method,
+          status:      payment.status,
+          bookingData: payment.bookingData,
+          cardDetails: payment.cardDetails ?? null,
+          saveDetails: payment.saveDetails ?? false,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to save payment:', err);
+    }
+
     addBooking({
       serviceType: payment.bookingData?.selectedServiceName,
       date: payment.bookingData?.date
-              ? new Date(payment.bookingData.date).toISOString().split('T')[0]
-              : null,
-      timeSlot: payment.bookingData?.timeSlot,
-      location: payment.bookingData?.location,
-      addons: (payment.bookingData?.selectedAddonNames ?? []).map(a => a.name),
+        ? new Date(payment.bookingData.date).toISOString().split('T')[0]
+        : null,
+      timeSlot:    payment.bookingData?.timeSlot,
+      location:    payment.bookingData?.location,
+      addons:      (payment.bookingData?.selectedAddonNames ?? []).map(a => a.name),
       totalAmount: payment.amount,
-      telephone: payment.bookingData?.telephone,
+      telephone:   payment.bookingData?.telephone,
     });
-
-    savePayment(payment);      
+    savePayment(payment);
     onClose();
-    setTimeout(() => navigate('/dashboard'), 100);
+    if (onPaymentComplete) {
+      onPaymentComplete();
+    } else {
+      setTimeout(() => navigate('/dashboard'), 100);
+    }
   };
 
   const today = new Date().toLocaleDateString('en-GB', {
@@ -34,21 +55,21 @@ const PaymentModal = ({ payment, onClose }) => {
   const bd = payment?.bookingData ?? {};
 
   const rows = [
-    { label: 'Receipt No.',     value: receiptNo },
-    { label: 'Date',            value: today },
-    { label: 'Payment Method',  value: payment?.method ?? '—' },
+    { label: 'Receipt No.',    value: receiptNo },
+    { label: 'Date',           value: today },
+    { label: 'Payment Method', value: payment?.method ?? '—' },
     { label: '', value: '', divider: true },
-    { label: 'Customer',        value: bd.fullName ?? '—' },
-    { label: 'Phone',           value: bd.telephone ?? '—' },
-    { label: 'Location',        value: bd.location ?? '—' },
+    { label: 'Customer',       value: bd.fullName ?? '—' },
+    { label: 'Phone',          value: bd.telephone ?? '—' },
+    { label: 'Location',       value: bd.location ?? '—' },
     { label: '', value: '', divider: true },
-    { label: 'Service',         value: bd.selectedServiceName ?? '—' },
-    { label: 'Pieces',          value: bd.pieces ? `${bd.pieces} piece${bd.pieces > 1 ? 's' : ''}` : '—' },
-    { label: 'Date & Time',     value: bd.date && bd.timeSlot ? `${new Date(bd.date).toLocaleDateString('en-GB')} · ${bd.timeSlot}` : '—' },
+    { label: 'Service',        value: bd.selectedServiceName ?? '—' },
+    { label: 'Pieces',         value: bd.pieces ? `${bd.pieces} piece${bd.pieces > 1 ? 's' : ''}` : '—' },
+    { label: 'Date & Time',    value: bd.date && bd.timeSlot ? `${new Date(bd.date).toLocaleDateString('en-GB')} · ${bd.timeSlot}` : '—' },
     ...(bd.addonsTotal > 0
       ? [{ label: 'Add-ons', value: `LKR ${bd.addonsTotal.toFixed(2)}` }]
       : []),
-    { label: 'Booking Fee',     value: `LKR ${(bd.bookingFee ?? 0).toFixed(2)}` },
+    { label: 'Booking Fee',    value: `LKR ${(bd.bookingFee ?? 0).toFixed(2)}` },
   ];
 
   const downloadPDF = () => {
@@ -56,7 +77,6 @@ const PaymentModal = ({ payment, onClose }) => {
     const navy = [20, 33, 61];
     const amber = [252, 163, 17];
 
-    // Header bar
     doc.setFillColor(...navy);
     doc.rect(0, 0, 210, 38, 'F');
     doc.setTextColor(255, 255, 255);
@@ -68,14 +88,12 @@ const PaymentModal = ({ payment, onClose }) => {
     doc.text('Laundry Management System', 20, 28);
     doc.text(`Receipt: ${receiptNo}`, 140, 28);
 
-    // Success badge
     doc.setFillColor(...amber);
     doc.roundedRect(150, 8, 45, 12, 3, 3, 'F');
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
 
-    // Body
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
@@ -132,7 +150,6 @@ const PaymentModal = ({ payment, onClose }) => {
       y += 4;
     });
 
-    // Total box
     doc.setFillColor(245, 247, 255);
     doc.roundedRect(20, y, 170, 20, 3, 3, 'F');
     doc.setFont('helvetica', 'bold');
@@ -142,7 +159,6 @@ const PaymentModal = ({ payment, onClose }) => {
     doc.setTextColor(...amber);
     doc.text(`LKR ${(payment?.amount ?? 0).toFixed(2)}`, 140, y + 13);
 
-    // Footer
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.setTextColor(150, 150, 150);
@@ -200,7 +216,6 @@ const PaymentModal = ({ payment, onClose }) => {
         >
           {/* ── Header ── */}
           <div style={{ backgroundColor: '#14213d' }} className="px-6 py-5 relative">
-            
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-full bg-green-400 flex items-center justify-center shadow-lg">
                 <FiCheckCircle className="text-white" size={22} />
