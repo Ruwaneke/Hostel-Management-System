@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import PaymentModal from './PaymentModal';
-import { CURRENT_USER } from '../constants/currentUser';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useNotifications } from '../context/NotificationContext';
 
-const PaymentForm = ({ bookingData, addPaymentToHistory, onBack }) => {
+const PaymentForm = ({ bookingData, addPaymentToHistory, onBack, onPaymentComplete }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { addNotification } = useNotifications();
+  const booking = bookingData || location.state?.booking;
+
   const [paymentMethod, setPaymentMethod] = useState('VISA');
   const [cardDetails, setCardDetails] = useState({
-    cardholderName: bookingData?.fullName || CURRENT_USER.name,
+    cardholderName: booking?.fullName || '',   // ✅ no CURRENT_USER
     cardNumber: '',
     expiryMonth: '',
     expiryYear: '',
@@ -17,46 +23,37 @@ const PaymentForm = ({ bookingData, addPaymentToHistory, onBack }) => {
   const [showModal, setShowModal] = useState(false);
   const [lastPayment, setLastPayment] = useState(null);
 
-  // Use real total from booking data (convert LKR to display as-is)
-  const totalAmount = bookingData?.grandTotal ?? 0;
+  // ✅ bookingSummaryData uses grandTotal
+  const totalAmount = booking?.grandTotal ?? booking?.totalAmount ?? 0;
 
   const validateCardNumber = (number) => /^\d{16}$/.test(number.replace(/\s/g, ''));
   const validateCVV = (cvv) => /^\d{3}$/.test(cvv);
 
-const handleCardInputChange = (e) => {
-  let { name, value } = e.target;
-
-
-  if (name === "cardNumber") {
-    value = value.replace(/\D/g, ""); // only digits]
-    value = value.match(/.{1,4}/g)?.join(" ") || "";
-  }
-
-  if (name === "cvv") {
-    value = value.replace(/\D/g, ""); // only digits
-  }
-
-  setCardDetails(prev => ({ ...prev, [name]: value }));
-
-  if (errors[name]) {
-    setErrors(prev => ({ ...prev, [name]: '' }));
-  }
-};
-
-  const handlePaymentMethodChange = (method) => {
-    setPaymentMethod(method);
+  const handleCardInputChange = (e) => {
+    let { name, value } = e.target;
+    if (name === 'cardNumber') {
+      value = value.replace(/\D/g, '').match(/.{1,4}/g)?.join(' ') || '';
+    }
+    if (name === 'cvv') {
+      value = value.replace(/\D/g, '');
+    }
+    setCardDetails(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const buildPayment = (method) => ({
     amount: totalAmount,
     method,
-    status: 'Completed',
-    bookingData,
+    status: 'Success',
+    bookingData: booking
   });
+
+  const notifySuccess = () => addNotification?.('Payment confirmed successfully!', 'success');
 
   const handleCashPayment = () => {
     const payment = buildPayment('Cash on Delivery');
     addPaymentToHistory?.(payment);
+    notifySuccess();
     setLastPayment(payment);
     setShowModal(true);
   };
@@ -77,295 +74,226 @@ const handleCardInputChange = (e) => {
         saveDetails,
       };
       addPaymentToHistory?.(payment);
+      notifySuccess();
       setLastPayment(payment);
       setShowModal(true);
     }
   };
 
-  const paymentMethods = [
-    { id: 'mastercard', name: 'Mastercard' },
-    { id: 'VISA', name: 'VISA' },
-    { id: 'paypal', name: 'PayPal' },
-    { id: 'cash', name: 'Cash on Delivery' },
-  ];
-
-  const months = Array.from({ length: 12 }, (_, i) => ({
-    value: String(i + 1).padStart(2, '0'),
-    label: String(i + 1).padStart(2, '0'),
-  }));
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 10 }, (_, i) => ({
-    value: String(currentYear + i),
-    label: String(currentYear + i),
-  }));
-
-  /* ── Order summary box shared across all payment methods ── */
-  const OrderSummary = () => (
-    <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 space-y-2">
-      <p className="text-sm font-semibold text-gray-700 mb-2 uppercase tracking-wide">Order Summary</p>
-
-      {bookingData && (
-        <>
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Service</span>
-            <span className="font-medium text-gray-800">{bookingData.selectedServiceName}</span>
-          </div>
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Pieces ({bookingData.pieces} × LKR 50.00)</span>
-            <span>LKR {(bookingData.piecesTotal ?? 0).toFixed(2)}</span>
-          </div>
-          {(bookingData.addonsTotal ?? 0) > 0 && (
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Add-ons</span>
-              <span>LKR {bookingData.addonsTotal.toFixed(2)}</span>
-            </div>
-          )}
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Booking Fee</span>
-            <span>LKR {(bookingData.bookingFee ?? 0).toFixed(2)}</span>
-          </div>
-        </>
-      )}
-
-      <hr className="border-gray-300 my-1" />
-      <div className="flex justify-between font-bold text-gray-900">
-        <span>TOTAL AMOUNT</span>
-        <span className="text-amber-500 text-lg">LKR {totalAmount.toFixed(2)}</span>
+  if (!booking) {
+    return (
+      <div className="max-w-2xl mx-auto p-8">
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <h2 className="text-xl font-semibold">No booking found</h2>
+          <p className="text-sm text-gray-500 mt-2">Please complete a laundry booking first.</p>
+          <button
+            onClick={() => navigate('/laundry')}
+            className="mt-6 px-5 py-3 bg-[#14213D] text-white rounded-lg"
+          >
+            Go to Laundry
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        {/* Header with back button */}
-        <div className="flex items-center gap-3 mb-6">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="text-gray-500 hover:text-gray-800 transition-colors text-sm flex items-center gap-1"
-            >
-              ← Back
-            </button>
-          )}
-          <h2 className="text-2xl font-bold text-black">Payment Details</h2>
-        </div>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_0.9fr]">
 
-        {/* Payment Method Selector */}
-        <div className="mb-8">
-          <div className="grid grid-cols-4 gap-3">
-            {paymentMethods.map((method) => (
-              <div
-                key={method.id}
-                onClick={() => handlePaymentMethodChange(method.id)}
-                className={`relative border-2 rounded-lg p-3 cursor-pointer transition-all ${
-                  paymentMethod === method.id
-                    ? 'border-amber-500 bg-amber-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value={method.id}
-                  checked={paymentMethod === method.id}
-                  onChange={() => handlePaymentMethodChange(method.id)}
-                  className="absolute top-2 left-2 w-3.5 h-3.5 accent-amber-500"
-                />
-                <div className="text-center mt-3">
-                  {method.id === 'mastercard' && (
-                    <div className="flex justify-center mb-1.5">
-                      <div className="w-5 h-5 bg-red-500 rounded-full opacity-80" />
-                      <div className="w-5 h-5 bg-orange-400 rounded-full opacity-80 -ml-2" />
-                    </div>
-                  )}
-                  {method.id === 'VISA' && (
-                    <div className="text-xl font-extrabold text-blue-900 mb-1.5 tracking-tight">VISA</div>
-                  )}
-                  {method.id === 'paypal' && (
-                    <div className="text-xl font-bold text-blue-600 mb-1.5">Pay</div>
-                  )}
-                  {method.id === 'cash' && (
-                    <div className="text-lg mb-1.5">💵</div>
-                  )}
-                  <div className="text-xs text-gray-500 uppercase font-medium">{method.name}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* ── Payment Form ── */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-5">Payment Details</h2>
 
-        {/* ── Card fields (VISA / Mastercard) ── */}
-        {(paymentMethod === 'mastercard' || paymentMethod === 'VISA') && (
-          <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Card Number <span className="text-amber-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="cardNumber"
-                  value={cardDetails.cardNumber}
-                  onChange={handleCardInputChange}
-                  maxLength="19"
-                  placeholder="1234 5678 9012 3456"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent ${
-                    errors.cardNumber ? 'border-red-400' : 'border-gray-300'
-                  }`}
-                />
-                
-                {errors.cardNumber && <p className="text-red-500 text-xs mt-1">{errors.cardNumber}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Cardholder Name <span className="text-amber-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="cardholderName"
-                  value={cardDetails.cardholderName}
-                  onChange={handleCardInputChange}
-                  placeholder="Full name on card"
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent ${
-                    errors.cardholderName ? 'border-red-400' : 'border-gray-300'
-                  }`}
-                />
-                {errors.cardholderName && <p className="text-red-500 text-xs mt-1">{errors.cardholderName}</p>}
-              </div>
-            </div>
-
-            <div className="flex items-end gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry <span className="text-amber-500">*</span>
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    name="expiryMonth"
-                    value={cardDetails.expiryMonth}
-                    onChange={handleCardInputChange}
-                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-400 ${
-                      errors.expiryMonth ? 'border-red-400' : 'border-gray-300'
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-2">Select payment method</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {['VISA', 'Mastercard', 'PayPal', 'Cash on Delivery'].map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    onClick={() => setPaymentMethod(method)}
+                    className={`rounded-2xl px-4 py-3 border text-left transition ${
+                      paymentMethod === method
+                        ? 'border-[#14213D] bg-[#14213D] text-white'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                     }`}
                   >
-                    <option value="">MM</option>
-                    {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                  </select>
-                  <select
-                    name="expiryYear"
-                    value={cardDetails.expiryYear}
+                    {method}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {paymentMethod !== 'Cash on Delivery' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Cardholder Name</label>
+                  <input
+                    name="cardholderName"
+                    value={cardDetails.cardholderName}
                     onChange={handleCardInputChange}
-                    className={`px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-400 ${
-                      errors.expiryYear ? 'border-red-400' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">YYYY</option>
-                    {years.map(y => <option key={y.value} value={y.value}>{y.label}</option>)}
-                  </select>
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#14213D]"
+                  />
+                  {errors.cardholderName && <p className="text-red-500 text-xs mt-1">{errors.cardholderName}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Card Number</label>
+                  <input
+                    name="cardNumber"
+                    value={cardDetails.cardNumber}
+                    onChange={handleCardInputChange}
+                    maxLength="19"
+                    placeholder="0000 0000 0000 0000"
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#14213D]"
+                  />
+                  {errors.cardNumber && <p className="text-red-500 text-xs mt-1">{errors.cardNumber}</p>}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Expiry Month</label>
+                    <select
+                      name="expiryMonth"
+                      value={cardDetails.expiryMonth}
+                      onChange={handleCardInputChange}
+                      className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#14213D]"
+                    >
+                      <option value="">Month</option>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <option key={i} value={String(i + 1).padStart(2, '0')}>
+                          {String(i + 1).padStart(2, '0')}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.expiryMonth && <p className="text-red-500 text-xs mt-1">{errors.expiryMonth}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Expiry Year</label>
+                    <select
+                      name="expiryYear"
+                      value={cardDetails.expiryYear}
+                      onChange={handleCardInputChange}
+                      className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#14213D]"
+                    >
+                      <option value="">Year</option>
+                      {Array.from({ length: 10 }, (_, i) => (
+                        <option key={i} value={String(new Date().getFullYear() + i)}>
+                          {String(new Date().getFullYear() + i)}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.expiryYear && <p className="text-red-500 text-xs mt-1">{errors.expiryYear}</p>}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">CVV</label>
+                  <input
+                    name="cvv"
+                    value={cardDetails.cvv}
+                    onChange={handleCardInputChange}
+                    maxLength="3"
+                    placeholder="123"
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#14213D]"
+                  />
+                  {errors.cvv && <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">CVV <span className="text-amber-500">*</span></label>
-                <input
-                  type="text"
-                  name="cvv"
-                  value={cardDetails.cvv}
-                  onChange={handleCardInputChange}
-                  maxLength="3"
-                  placeholder="123"
-                   inputMode="numeric"
-                  className={`w-20 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-400 ${
-                    errors.cvv ? 'border-red-400' : 'border-gray-300'
-                  }`}
-                />
-                {errors.cvv && <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>}
-              </div>
-              
-            </div>
+            )}
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="saveDetails"
-                checked={saveDetails}
-                onChange={(e) => setSaveDetails(e.target.checked)}
-                className="w-4 h-4 accent-amber-500"
-              />
-              <label htmlFor="saveDetails" className="text-sm text-gray-600">
-                Save my details for future purchases
-              </label>
-            </div>
-
-            <OrderSummary />
-
-            <button
-              onClick={handleCardPayment}
-              style={{ backgroundColor: '#14213d' }}
-              className="w-full hover:opacity-90 text-white font-bold py-4 px-6 rounded-lg uppercase tracking-wide transition-opacity"
-            >
-              Confirm Payment — LKR {totalAmount.toFixed(2)}
-            </button>
-          </div>
-        )}
-
-        {/* ── Cash on Delivery ── */}
-        {paymentMethod === 'cash' && (
-          <div className="space-y-5">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
-              💡 Payment will be collected when your laundry is picked up or delivered.
-            </div>
-            {/* ── Disabled notice ── */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600 font-medium">
-                Cash on Delivery is currently unavailable. Please select another payment method.
-            </div>
-            <OrderSummary />
-            <button
+            <div className="flex gap-3 flex-col sm:flex-row">
+              <button
                 type="button"
-                disabled
-                className="w-full px-4 py-3 bg-gray-300 text-gray-600 rounded-md cursor-not-allowed font-semibold opacity-50"
-                title="Cash on Delivery is currently unavailable"
-            >
-                Confirm — Cash on Delivery
-            </button>
-            {/*<button
-              onClick={handleCashPayment}
-              style={{ backgroundColor: '#14213d' }}
-              className="w-full hover:opacity-90 text-white font-bold py-4 px-6 rounded-lg uppercase tracking-wide transition-opacity"
-            >
-              Confirm — Cash on Delivery
-            </button>*/}
-          </div>
-        )}
-
-        {/* ── PayPal ── */}
-        {paymentMethod === 'paypal' && (
-          <div className="space-y-5">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-              You will be redirected to PayPal to complete the payment securely.
+                onClick={handleCardPayment}
+                className="flex-1 rounded-xl bg-[#14213D] px-4 py-3 text-white font-semibold hover:bg-[#1e3160] transition-colors"
+              >
+                Confirm Card Payment
+              </button>
+              <button
+                type="button"
+                onClick={handleCashPayment}
+                className="flex-1 rounded-xl border border-gray-300 px-4 py-3 font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Pay with Cash
+              </button>
             </div>
-            <OrderSummary />
-            <button
-              onClick={() => alert('PayPal redirect would happen here')}
-              className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-4 px-6 rounded-lg uppercase tracking-wide transition-colors"
-            >
-              Pay with PayPal — LKR {totalAmount.toFixed(2)}
-            </button>
           </div>
-        )}
+        </div>
 
-        {/* Success Modal */}
-        {showModal && lastPayment && (
-          <PaymentModal
-            payment={lastPayment}
-            onClose={() => setShowModal(false)}
-          />
-        )}
-      </motion.div>
+        {/* ── Order Summary (inline, no separate component) ── */}
+        <div className="bg-[#f8fafc] rounded-2xl p-6 shadow-sm">
+          <h3 className="font-bold text-lg text-gray-800 mb-4">Order Summary</h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Customer</span>
+              <span className="font-medium text-gray-800">{booking?.fullName ?? '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Service</span>
+              <span className="font-medium text-gray-800">{booking?.selectedServiceName ?? '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Pieces</span>
+              <span className="font-medium text-gray-800">{booking?.pieces ?? '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Date</span>
+              <span className="font-medium text-gray-800">
+                {booking?.date
+                  ? (booking.date instanceof Date
+                      ? booking.date.toLocaleDateString()
+                      : new Date(booking.date).toLocaleDateString())
+                  : '—'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Time</span>
+              <span className="font-medium text-gray-800">{booking?.timeSlot ?? '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Location</span>
+              <span className="font-medium text-gray-800">{booking?.location ?? '—'}</span>
+            </div>
+
+            {/* Add-ons */}
+            {(booking?.selectedAddonNames ?? []).length > 0 && (
+              <div className="pt-2 border-t border-gray-200">
+                <p className="text-gray-500 mb-1">Add-ons</p>
+                {booking.selectedAddonNames.map((addon, i) => (
+                  <div key={i} className="flex justify-between">
+                    <span className="text-gray-600 pl-2">• {addon.name}</span>
+                    <span className="text-gray-800">LKR {addon.price?.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Booking fee */}
+            {(booking?.bookingFee ?? 0) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gray-500">Booking Fee</span>
+                <span className="font-medium text-gray-800">LKR {booking.bookingFee.toFixed(2)}</span>
+              </div>
+            )}
+
+            {/* Total */}
+            <div className="border-t border-gray-300 pt-3 mt-2 flex justify-between items-center">
+              <span className="font-bold text-gray-800">Total</span>
+              <span className="font-extrabold text-xl text-amber-500">
+                LKR {totalAmount.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showModal && lastPayment && (
+        <PaymentModal
+          payment={lastPayment}
+          onClose={() => setShowModal(false)}
+          onPaymentComplete={onPaymentComplete}
+        />
+      )}
     </div>
   );
 };
