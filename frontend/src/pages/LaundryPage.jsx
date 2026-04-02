@@ -23,7 +23,8 @@ export default function LaundryPage() {
   };
 
   // Called after booking is confirmed in BookingSummary → go to payment
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = (data) => {
+    setBookingSummaryData(data);  // ← update with confirmed data
     setCurrentStep('payment');
   };
 
@@ -117,6 +118,7 @@ export default function LaundryPage() {
             </motion.div>
           )}
 
+         
           {currentStep === 'summary' && (
             <motion.div
               key="summary"
