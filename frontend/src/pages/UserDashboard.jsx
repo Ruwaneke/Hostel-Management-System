@@ -239,14 +239,26 @@ export default function UserDashboard() {
           </div>
         );
 
+      
       // ─────────────────────────────────────────────────────────────────
       // 3. PAYMENTS & INVOICE HISTORY
       // ─────────────────────────────────────────────────────────────────
       case "payments":
         if (!bookingData || !roomData) return null;
         
-        // Simulating the payment history based on their booking.
-        // Once you build the Invoice backend, you can fetch actual arrays here!
+        // NEW: Logic to handle clicking the pay button
+        const handleMonthlyPayment = async () => {
+          try {
+            const res = await axios.post('http://localhost:5025/api/bookings/monthly-checkout', { 
+              bookingId: bookingData._id 
+            });
+            window.location.href = res.data.url; // Go to Stripe
+          } catch (error) {
+            console.error(error);
+            alert("Failed to initialize payment.");
+          }
+        };
+
         const paymentHistory = [
           { 
             desc: "First Month Rent & Key Money", 
@@ -268,7 +280,12 @@ export default function UserDashboard() {
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="flex justify-between items-center">
               <h2 className="text-3xl font-black text-slate-800">Financial Center</h2>
-              <button className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-md text-sm">
+              
+              {/* UPDATED: Added onClick to trigger Stripe */}
+              <button 
+                onClick={handleMonthlyPayment}
+                className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-md text-sm"
+              >
                 Pay Next Month Rent
               </button>
             </div>
@@ -321,7 +338,6 @@ export default function UserDashboard() {
             </div>
           </div>
         );
-
       // ─────────────────────────────────────────────────────────────────
       // 4. NEW LAUNDRY COMPONENT 
       // ─────────────────────────────────────────────────────────────────

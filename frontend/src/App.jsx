@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext'; // Import useAuth
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -15,9 +15,10 @@ import UserComplaints from './pages/UserComplaints';
 import AdminComplaints from './pages/AdminComplaints';
 import './index.css';
 
-// Booking Pages
+// Booking & Payment Pages
 import UserBookingCheckout from './pages/RoomAllocation/UserBookingCheckout';
 import PaymentSuccess from './pages/RoomAllocation/PaymentSuccess'; 
+import MonthlyPaymentSuccess from './pages/RoomAllocation/MonthlyPaymentSuccess'; // <-- NEW IMPORT
 
 // Laundry Pages
 import LaundrySuccess from './pages/Londary/LaundrySuccess';
@@ -25,16 +26,14 @@ import LaundrySuccess from './pages/Londary/LaundrySuccess';
 // Chatbot Component
 import Chatbot from './components/Chatbot';
 
-// --- NEW: Wrapper Component to conditionally render the Chatbot ---
+// Wrapper Component to conditionally render the Chatbot
 const ChatbotWrapper = () => {
   const { user } = useAuth();
   
-  // Only show the chatbot if someone is logged in AND their role is "user" (student)
   if (user && user.role === 'user') {
     return <Chatbot />;
   }
   
-  // Return nothing if they are an admin or not logged in
   return null;
 };
 
@@ -66,6 +65,15 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="user">
                   <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+            {/* --- NEW: MONTHLY RENT SUCCESS ROUTE --- */}
+            <Route
+              path="/monthly-success/:bookingId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <MonthlyPaymentSuccess />
                 </ProtectedRoute>
               }
             />
@@ -123,7 +131,6 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
 
-          {/* --- Render the wrapper instead of the Chatbot directly --- */}
           <ChatbotWrapper />
 
         </ToastProvider>
