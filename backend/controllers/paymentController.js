@@ -1,54 +1,71 @@
-import Payment from '../models/paymentModel.js';
+import { Payment } from '../models/Payment.js';
 
-const extractLast4 = (cardNumber = '') =>
-  cardNumber.replace(/\s/g, '').slice(-4) || null;
-
-export const createPayment = async (req, res) => {
-  try {
-    const { amount, method, status, bookingData, cardDetails, saveDetails } = req.body;
-
-    if (amount == null || !method) {
-      return res.status(400).json({ message: 'amount and method are required.' });
+// GET /api/payments — admin gets all, user gets own
+export const getPayments = async (req, res) => {
+    try {
+        const filter = req.user.role === 'admin' ? {} : { student: req.user._id };
+        const payments = await Payment.find(filter)
+            .populate('student', 'name email')
+            .sort({ createdAt: -1 });
+        res.status(200).json({ success: true, count: payments.length, payments });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
-
-    let safeCardDetails;
-    if (cardDetails && method !== 'Cash on Delivery') {
-      safeCardDetails = {
-        cardholderName: cardDetails.cardholderName,
-        last4:          extractLast4(cardDetails.cardNumber),
-        expiryMonth:    cardDetails.expiryMonth,
-        expiryYear:     cardDetails.expiryYear,
-      };
-    }
-
-    const payment = await Payment.create({
-    userId:        bookingData?.userId ?? 'guest',
-    serviceType:   'laundry',
-    amount,
-    paymentMethod: method === 'Cash on Delivery' ? 'cash' : 'card', 
-    status:        'success',                                         
-    method,
-    bookingData,
-    cardDetails:   safeCardDetails,
-    saveDetails:   saveDetails ?? false,
-});
-
-    res.status(201).json({
-      message:   'Payment recorded successfully.',
-      paymentId: payment._id,
-      status:    payment.status,
-    });
-  } catch (error) {
-    console.error('createPayment error:', error);
-    res.status(500).json({ message: 'Server error.' });
-  }
 };
 
-export const getPayments = async (req, res) => {
-  try {
-    const payments = await Payment.find().sort({ createdAt: -1 });
-    res.json({ count: payments.length, payments });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error.' });
-  }
+// GET /api/payments/:id
+export const getPayment = async (req, res) => {
+    try {
+        const payment = await Payment.findById(req.params.id).populate('student', 'name email');
+        if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+
+        // Users can only view their own payments
+        if (req.user.role !== 'admin' && payment.student._id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        res.status(200).json({ success: true, payment });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// POST /api/payments — admin only
+export const createPayment = async (req, res) => {
+    try {
+        const { student, amount, type, month, dueDate, description } = req.body;
+        const payment = await Payment.create({ student, amount, type, month, dueDate, description });
+        await payment.populate('student', 'name email');
+        res.status(201).json({ success: true, message: 'Payment created', payment });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// PUT /api/payments/:id — admin only
+export const updatePayment = async (req, res) => {
+    try {
+        // Auto-set paidDate when marking as paid
+        if (req.body.status === 'paid' && !req.body.paidDate) {
+            req.body.paidDate = new Date();
+        }
+        const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, {
+            new: true, runValidators: true
+        }).populate('student', 'name email');
+        if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+        res.status(200).json({ success: true, message: 'Payment updated', payment });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// DELETE /api/payments/:id — admin only
+export const deletePayment = async (req, res) => {
+    try {
+        const payment = await Payment.findByIdAndDelete(req.params.id);
+        if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+        res.status(200).json({ success: true, message: 'Payment deleted' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
 };

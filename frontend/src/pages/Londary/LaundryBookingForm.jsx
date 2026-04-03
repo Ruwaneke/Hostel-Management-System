@@ -57,7 +57,12 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
       alert("You must book a room before you can request laundry services!");
       return;
     }
-
+    if (!/^\d{10}$/.test(formData.phone)) {
+    alert("Please enter a valid 10-digit phone number!");
+    return;
+  }
+    
+  
     setIsSubmitting(true);
     
     const submitData = new FormData();
@@ -97,7 +102,7 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
 
   return (
     <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-      <h3 className="text-xl font-black text-slate-800 mb-6 border-b border-slate-100 pb-4">Laundry Request Form</h3>
+      <h3 className="text-xl font-black text-slate-800 mb-6 border-b border-slate-100 pb-4 ">Laundry Request Form</h3>
       
       <form onSubmit={handleSubmit} className="space-y-8">
         
@@ -114,16 +119,16 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
               <input type="text" value={roomNumber} readOnly className="w-full border border-slate-200 p-3 rounded-xl bg-slate-100 text-slate-500 font-black cursor-not-allowed" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1">Phone Number <span className="text-rose-500">*</span></label>
-              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required placeholder="e.g. +94 77 123 4567"
-                className="w-full border-2 border-slate-200 p-3 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-brand-navy transition-colors bg-white" />
-            </div>
-          </div>
-        </div>
+            <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1">Phone Number <span className="text-rose-500">*</span></label>
+            <input type="number"name="phone" value={formData.phone} onChange={handleInputChange} required placeholder="e.g. 0771234567"onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                    className="w-full border-2 border-slate-200 p-3 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-brand-navy transition-colors bg-white" />
+                </div>
+                </div>
+              </div>
 
         {/* SECTION 2: SERVICE TYPE */}
         <div>
-          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"><span>🧼</span> Select Service Type (Base Price)</h4>
+          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"> Select Service Type (Base Price)</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {serviceOptions.map((opt) => (
               <label key={opt.name} className={`flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-colors text-center ${formData.serviceType === opt.name ? 'border-brand-navy bg-brand-navy text-white shadow-md' : 'border-slate-200 text-slate-600 hover:border-brand-navy/50'}`}>
@@ -137,7 +142,7 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
 
         {/* SECTION 3: PACKAGE SPEED */}
         <div>
-          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"><span>📦</span> Turnaround Speed (Premium Extra)</h4>
+          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"> Turnaround Speed (Premium Extra)</h4>
           <div className="space-y-3">
             {[
               { name: 'One Day Service', price: settings?.oneDayExtra || 0, desc: "Fast 24-hour turnaround" },
@@ -161,7 +166,7 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
         {/* SECTION 4: QUANTITY, INSTRUCTIONS & IMAGE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"><span>🔢</span> Number of Pieces</h4>
+            <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"> Number of Pieces</h4>
             <input type="number" name="pieces" min="1" value={formData.pieces} onChange={handleInputChange} required
               className="w-full border-2 border-slate-200 p-4 rounded-xl font-black text-2xl text-center text-brand-navy focus:outline-none focus:border-brand-navy transition-colors bg-white" />
           </div>
@@ -173,8 +178,8 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
         </div>
 
         <div>
-          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-2 flex items-center gap-2"><span>📝</span> Special Instructions <span className="text-[10px] font-bold uppercase text-slate-400">(Optional)</span></h4>
-          <textarea name="specialInstructions" value={formData.specialInstructions} onChange={handleInputChange} placeholder="E.g., Please use gentle detergent, mind the red stain..."
+          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-2 flex items-center gap-2">Special Instructions <span className="text-[10px] font-bold uppercase text-slate-400">(Optional)</span></h4>
+          <textarea name="specialInstructions" value={formData.specialInstructions} onChange={handleInputChange} placeholder="Please use gentle detergent, mind the red stain..."
             className="w-full border-2 border-slate-200 p-3 rounded-xl font-medium text-sm focus:outline-none focus:border-brand-navy transition-colors resize-none h-20 bg-white" />
         </div>
         

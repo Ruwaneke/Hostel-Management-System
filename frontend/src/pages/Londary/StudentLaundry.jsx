@@ -59,9 +59,9 @@ export default function StudentLaundry() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-10">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-10 text-center">
       <div>
-        <h2 className="text-3xl font-black text-brand-navy tracking-tight">Laundry Services 👕</h2>
+        <h2 className="text-3xl font-black text-brand-navy tracking-tight">Laundry Services </h2>
         <p className="text-slate-500 font-medium mt-1">Book a wash, select your service type, and track your clothes.</p>
       </div>
 

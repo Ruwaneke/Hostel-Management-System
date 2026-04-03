@@ -17,17 +17,6 @@ export const connectDB = async () => {
         // Don't exit — let the server start so you can diagnose via API
         // Routes will return 503 until DB reconnects
     }
-
-    try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB connected Successfully');
-
-
-
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
 };
 
 //Connection events

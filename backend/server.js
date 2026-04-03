@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
 import mongoose from "mongoose";
 import http from "http";
 import app from './app.js';
@@ -7,11 +5,7 @@ import { connectDB } from "./config/database.js";
 import { startSLAJob } from "./jobs/slaJob.js";
 
 
-
-
-const PORT = process.env.PORT || 5025;
-
-
+const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(app);
 
@@ -34,6 +28,4 @@ startServer();
 
 server.on('error', (error) => {
     console.error('Server error:', error);
-
-    
 });
