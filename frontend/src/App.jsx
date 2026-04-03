@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -19,15 +19,27 @@ import AdminMenus from './pages/AdminMenus';
 import UserMenusView from './pages/UserMenusView';
 import './index.css';
 
-// Booking Pages
+// Booking & Payment Pages
 import UserBookingCheckout from './pages/RoomAllocation/UserBookingCheckout';
 import PaymentSuccess from './pages/RoomAllocation/PaymentSuccess'; 
+import MonthlyPaymentSuccess from './pages/RoomAllocation/MonthlyPaymentSuccess'; // <-- NEW IMPORT
 
 // Laundry Pages
 import LaundrySuccess from './pages/Londary/LaundrySuccess';
 
-// --- NEW CHATBOT IMPORT ---
+// Chatbot Component
 import Chatbot from './components/Chatbot';
+
+// Wrapper Component to conditionally render the Chatbot
+const ChatbotWrapper = () => {
+  const { user } = useAuth();
+  
+  if (user && user.role === 'user') {
+    return <Chatbot />;
+  }
+  
+  return null;
+};
 
 function App() {
   return (
@@ -37,9 +49,6 @@ function App() {
     }}>
       <AuthProvider>
         <ToastProvider>
-          {/* Routes define which component to show based on the URL.
-              The Chatbot is placed outside Routes so it persists everywhere.
-          */}
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
@@ -49,7 +58,44 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
 
+<<<<<<< HEAD
             {/* Student/User Protected Routes */}
+=======
+            {/* Student Protected Routes */}
+            <Route
+              path="/book/:roomId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <UserBookingCheckout />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment-success/:bookingId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+            {/* --- NEW: MONTHLY RENT SUCCESS ROUTE --- */}
+            <Route
+              path="/monthly-success/:bookingId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <MonthlyPaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/laundry-success"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <LaundrySuccess />
+                </ProtectedRoute>
+              }
+            />
+>>>>>>> e1726312aaa1d24fbc262fce9c43a46301170b26
             <Route
               path="/user-dashboard"
               element={
@@ -128,8 +174,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
 
-          {/* --- SMART HOSTEL ASSISTANT WIDGET --- */}
-          <Chatbot />
+          <ChatbotWrapper />
 
         </ToastProvider>
       </AuthProvider>
