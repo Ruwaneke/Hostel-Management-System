@@ -28,9 +28,9 @@ export default function StudentLaundry() {
     const fetchData = async () => {
       try {
         const [settingsRes, ordersRes, bookingRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/laundry/settings'),
-          axios.get(`http://localhost:5000/api/laundry/student/${user._id}`),
-          axios.get(`http://localhost:5000/api/bookings/status/${user._id}`) 
+          axios.get('http://localhost:5025/api/laundry/settings'),
+          axios.get(`http://localhost:5025/api/laundry/student/${user._id}`),
+          axios.get(`http://localhost:5025/api/bookings/status/${user._id}`) 
         ]);
         
         setSettings(settingsRes.data);

@@ -49,7 +49,7 @@ export default function AdminRooms() {
     if (window.confirm("Are you sure you want to delete this room? This cannot be undone.")) {
       try {
         // UPDATED PORT TO 5025
-        await axios.delete(`http://localhost:5000/api/rooms/${id}`);
+        await axios.delete(`http://localhost:5025/api/rooms/${id}`);
         fetchRooms(); 
       } catch (error) {
         console.error("Error deleting room:", error);

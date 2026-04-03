@@ -18,7 +18,7 @@ export default function LaundrySuccess() {
         return;
       }
       try {
-        await axios.post('http://localhost:5000/api/laundry/verify-payment', {
+        await axios.post('http://localhost:5025/api/laundry/verify-payment', {
           orderId,
           stripeSessionId: sessionId
         });
