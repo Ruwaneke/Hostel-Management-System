@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext'; // Import useAuth
 import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -22,17 +22,27 @@ import PaymentSuccess from './pages/RoomAllocation/PaymentSuccess';
 // Laundry Pages
 import LaundrySuccess from './pages/Londary/LaundrySuccess';
 
-// --- NEW CHATBOT IMPORT ---
+// Chatbot Component
 import Chatbot from './components/Chatbot';
+
+// --- NEW: Wrapper Component to conditionally render the Chatbot ---
+const ChatbotWrapper = () => {
+  const { user } = useAuth();
+  
+  // Only show the chatbot if someone is logged in AND their role is "user" (student)
+  if (user && user.role === 'user') {
+    return <Chatbot />;
+  }
+  
+  // Return nothing if they are an admin or not logged in
+  return null;
+};
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ToastProvider>
-          {/* Routes define which component to show based on the URL.
-              The Chatbot is placed outside Routes so it persists everywhere.
-          */}
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
@@ -113,8 +123,8 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
 
-          {/* --- SMART HOSTEL ASSISTANT WIDGET --- */}
-          <Chatbot />
+          {/* --- Render the wrapper instead of the Chatbot directly --- */}
+          <ChatbotWrapper />
 
         </ToastProvider>
       </AuthProvider>

@@ -114,7 +114,7 @@ export default function AdminRooms() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl pointer-events-none"></div>
         
         <div className="relative z-10">
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Room Management 🏨</h2>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Room Management 🏨</h2>
           <p className="text-slate-500 text-sm mt-1">Monitor occupancy, edit details, and add new inventory.</p>
         </div>
         <button 
