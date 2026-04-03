@@ -13,7 +13,7 @@ export default function AdminRooms() {
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5025/api/rooms');
+      const response = await axios.get('http://localhost:5000/api/rooms');
       setRooms(response.data);
     } catch (error) {
       console.error("Error fetching rooms:", error);
@@ -49,7 +49,7 @@ export default function AdminRooms() {
     if (window.confirm("Are you sure you want to delete this room? This cannot be undone.")) {
       try {
         // UPDATED PORT TO 5025
-        await axios.delete(`http://localhost:5025/api/rooms/${id}`);
+        await axios.delete(`http://localhost:5000/api/rooms/${id}`);
         fetchRooms(); 
       } catch (error) {
         console.error("Error deleting room:", error);
@@ -114,12 +114,12 @@ export default function AdminRooms() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full translate-x-1/3 -translate-y-1/3 blur-3xl pointer-events-none"></div>
         
         <div className="relative z-10">
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Room Management 🏨</h2>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight">Room Management 🏨</h2>
           <p className="text-slate-500 text-sm mt-1">Monitor occupancy, edit details, and add new inventory.</p>
         </div>
         <button 
           onClick={() => setView('add')}
-          className="relative z-10 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5 transition-all flex items-center gap-2"
+          className="relative z-10 bg-[#14213d] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#0f1829] hover:shadow-lg hover:shadow-[#14213d]/30 hover:-translate-y-0.5 transition-all flex items-center gap-2"
         >
           <span className="text-xl leading-none">+</span> Add Room
         </button>

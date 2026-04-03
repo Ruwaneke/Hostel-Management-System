@@ -91,12 +91,12 @@ const AdminRoomCreate = ({ onSuccess, editData }) => {
       let response;
       // 3. Switch between PUT (Update) and POST (Create)
       if (editData) {
-        response = await axios.put(`http://localhost:5025/api/rooms/${editData._id}`, data, {
+        response = await axios.put(`http://localhost:5000/api/rooms/${editData._id}`, data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         setMessage('Room updated successfully!');
       } else {
-        response = await axios.post('http://localhost:5025/api/rooms/create', data, {
+        response = await axios.post('http://localhost:5000/api/rooms/create', data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         setMessage('Room created successfully!');

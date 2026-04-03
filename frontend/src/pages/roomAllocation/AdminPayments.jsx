@@ -26,8 +26,8 @@ export default function AdminPayments() {
     const fetchAllTransactions = async () => {
       try {
         const [invoicesRes, laundryRes] = await Promise.all([
-          axios.get('http://localhost:5025/api/invoices'),
-          axios.get('http://localhost:5025/api/laundry/all') // Gets paid laundry orders
+          axios.get('http://localhost:5000/api/invoices'),
+          axios.get('http://localhost:5000/api/laundry/all') // Gets paid laundry orders
         ]);
 
         // 1. Format Room/Rent Invoices

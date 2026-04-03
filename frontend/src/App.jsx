@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -13,26 +13,42 @@ import Unauthorized from './pages/Unauthorized';
 import CreateComplaint from './pages/CreateComplaint';
 import UserComplaints from './pages/UserComplaints';
 import AdminComplaints from './pages/AdminComplaints';
+import AdminRestaurants from './pages/AdminRestaurants';
+import AdminRestaurantDetails from './pages/AdminRestaurantDetails';
+import AdminMenus from './pages/AdminMenus';
+import UserMenusView from './pages/UserMenusView';
 import './index.css';
 
-// Booking Pages
+// Booking & Payment Pages
 import UserBookingCheckout from './pages/RoomAllocation/UserBookingCheckout';
 import PaymentSuccess from './pages/RoomAllocation/PaymentSuccess'; 
+import MonthlyPaymentSuccess from './pages/RoomAllocation/MonthlyPaymentSuccess'; // <-- NEW IMPORT
 
 // Laundry Pages
 import LaundrySuccess from './pages/Londary/LaundrySuccess';
 
-// --- NEW CHATBOT IMPORT ---
+// Chatbot Component
 import Chatbot from './components/Chatbot';
+
+// Wrapper Component to conditionally render the Chatbot
+const ChatbotWrapper = () => {
+  const { user } = useAuth();
+  
+  if (user && user.role === 'user') {
+    return <Chatbot />;
+  }
+  
+  return null;
+};
 
 function App() {
   return (
-    <Router>
+    <Router future={{
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    }}>
       <AuthProvider>
         <ToastProvider>
-          {/* Routes define which component to show based on the URL.
-              The Chatbot is placed outside Routes so it persists everywhere.
-          */}
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
@@ -42,7 +58,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
 
-            {/* Student Protected Routes */}
+            {/* Student/User Protected Routes */}
             <Route
               path="/book/:roomId"
               element={
@@ -59,6 +75,15 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* --- NEW: MONTHLY RENT SUCCESS ROUTE --- */}
+            <Route
+              path="/monthly-success/:bookingId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <MonthlyPaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/laundry-success"
               element={
@@ -70,7 +95,7 @@ function App() {
             <Route
               path="/user-dashboard"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <UserDashboard />
                 </ProtectedRoute>
               }
@@ -78,7 +103,7 @@ function App() {
             <Route
               path="/create-complaint"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <CreateComplaint />
                 </ProtectedRoute>
               }
@@ -86,8 +111,16 @@ function App() {
             <Route
               path="/user-complaints"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <UserComplaints />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/menus"
+              element={
+                <ProtectedRoute requiredRole={['user', 'student']}>
+                  <UserMenusView />
                 </ProtectedRoute>
               }
             />
@@ -109,12 +142,35 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/admin/restaurants"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminRestaurants />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/restaurants/:id"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminRestaurantDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/menus"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminMenus />
+                </ProtectedRoute>
+              }
+            />
 
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
 
-          {/* --- SMART HOSTEL ASSISTANT WIDGET --- */}
-          <Chatbot />
+          <ChatbotWrapper />
 
         </ToastProvider>
       </AuthProvider>

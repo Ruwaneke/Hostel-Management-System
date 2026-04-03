@@ -181,3 +181,86 @@ export const getOccupantsByRoom = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ==========================================
+// 5. NEW: CREATE MONTHLY RENT CHECKOUT
+// ==========================================
+export const createMonthlyRentCheckout = async (req, res) => {
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const { bookingId } = req.body;
+
+    const booking = await Booking.findById(bookingId);
+    const room = await Room.findById(booking.roomId);
+
+    if (!booking || !room) return res.status(404).json({ message: "Booking or Room not found" });
+
+    const nextMonthDate = new Date(booking.paidUntil);
+    const monthName = nextMonthDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'lkr',
+          product_data: { 
+            name: `Monthly Rent - ${monthName}`, 
+            description: `Room ${room.roomNumber} recurring fee` 
+          },
+          unit_amount: room.monthlyRent * 100,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `http://localhost:5173/monthly-success/${booking._id}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:5173/user-dashboard`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error("Monthly Stripe Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ==========================================
+// 6. NEW: VERIFY MONTHLY RENT PAYMENT
+// ==========================================
+export const verifyMonthlyRent = async (req, res) => {
+  try {
+    const { bookingId, stripeSessionId } = req.body;
+    
+    const existingInvoice = await Invoice.findOne({ stripeSessionId });
+    if (existingInvoice) {
+      return res.json({ success: true, message: 'Payment already verified.' });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    const room = await Room.findById(booking.roomId);
+
+    // Advance paidUntil by exactly 1 month
+    const newPaidUntil = new Date(booking.paidUntil);
+    newPaidUntil.setMonth(newPaidUntil.getMonth() + 1);
+    booking.paidUntil = newPaidUntil;
+    await booking.save();
+
+    const paidMonthName = new Date().toLocaleString('default', { month: 'long', year: 'numeric' });
+    await Invoice.create({
+      studentId: booking.studentId,
+      studentEmail: booking.studentEmail,
+      studentName: booking.studentName,
+      roomNumber: booking.roomNumber,
+      description: `Monthly Rent Payment`,
+      monthName: paidMonthName,
+      amount: room.monthlyRent,
+      status: 'Paid',
+      stripeSessionId: stripeSessionId,
+      paidAt: new Date()
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Verify Monthly Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};

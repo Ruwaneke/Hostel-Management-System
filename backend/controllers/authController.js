@@ -20,7 +20,7 @@ const signToken = (user) =>
  */
 export const register = async (req, res) => {
     try {
-        const { name, email, password } = req.body;
+        const { name, email, password, role } = req.body;
 
         // Validation
         if (!name || !email || !password) {
@@ -29,6 +29,10 @@ export const register = async (req, res) => {
                 message: 'Please provide name, email, and password'
             });
         }
+
+        // Validate role
+        const validRoles = ['student', 'admin', 'user', 'staff'];
+        const userRole = role && validRoles.includes(role.toLowerCase()) ? role.toLowerCase() : 'student';
 
         // Normalize email to lowercase
         const normalizedEmail = email.toLowerCase().trim();
@@ -42,12 +46,12 @@ export const register = async (req, res) => {
             });
         }
 
-        // Create user with role='student' (default) and isActive=true
+        // Create user with specified role
         const user = await User.create({
             name: name.trim(),
             email: normalizedEmail,
             password,
-            role: 'user',  // Force student role
+            role: userRole,
             isActive: true
         });
 

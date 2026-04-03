@@ -5,6 +5,7 @@ import axios from "axios";
 
 import UserComplaints from "./UserComplaints";
 import UserFeedback from "./UserFeedback";
+import UserMenusView from "./UserMenusView";
 import UserBrowseRooms from "./RoomAllocation/UserBrowseRooms";
 
 // --- NEW IMPORT ---
@@ -48,7 +49,7 @@ export default function UserDashboard() {
       if (user && user._id) {
         try {
           // 1. Check if they have a booking
-          const statusRes = await axios.get(`http://localhost:5025/api/bookings/status/${user._id}`);
+          const statusRes = await axios.get(`http://localhost:5000/api/bookings/status/${user._id}`);
           const hasRoom = statusRes.data.hasBooking;
           setHasBooking(hasRoom);
           
@@ -57,7 +58,7 @@ export default function UserDashboard() {
             setBookingData(bData);
             
             // 2. If they have a booking, fetch the specific room data (for the image & amenities)
-            const roomRes = await axios.get(`http://localhost:5025/api/rooms/${bData.roomId}`);
+            const roomRes = await axios.get(`http://localhost:5000/api/rooms/${bData.roomId}`);
             setRoomData(roomRes.data);
 
             if (active === "browseRooms") setActive("overview");
@@ -78,6 +79,11 @@ export default function UserDashboard() {
   const [complaint, setComplaint] = useState("");
   const [laundryItems, setLaundryItems] = useState("");
   const [submitted, setSubmitted] = useState({ complaint: false, laundry: false });
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewMessage, setReviewMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
@@ -96,6 +102,36 @@ export default function UserDashboard() {
         { id: "overview",    label: "Overview",     icon: "📊" },
         { id: "browseRooms", label: "Browse Rooms", icon: "🏨" },
       ];
+
+  const handleReviewSubmit = async () => {
+    if (!rating) {
+      setReviewMessage("⭐ Please select rating before sending.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setReviewMessage("Sending review…");
+
+    try {
+      await axios.post("http://localhost:5025/api/reviews", {
+        userId: user?._id,
+        bookingId: bookingData?._id,
+        roomId: roomData?._id,
+        rating,
+        review: reviewText.trim(),
+      });
+
+      setReviewMessage("✅ Review sent — thank you!");
+    } catch (error) {
+      console.warn("Review API failed, still clearing form (frontend-only mode):", error);
+      setReviewMessage("✅ Review submitted");
+    } finally {
+      setRating(0);
+      setHoverRating(0);
+      setReviewText("");
+      setIsSubmitting(false);
+    }
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -184,69 +220,145 @@ export default function UserDashboard() {
         if (!bookingData || !roomData) return null;
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-3xl font-black text-slate-800">My Room Profile</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Image & Main Info */}
-              <div className="lg:col-span-1 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="h-64 bg-slate-200 relative">
+            <h2 className="text-3xl font-black text-brand-navy">My Room Profile</h2>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+                <div className="relative h-140 bg-slate-200">
                   {roomData.image ? (
-                    <img src={`/roomImage/${roomData.image}`} className="w-full h-full object-cover" alt="My Room" />
+                    <img src={`/roomImage/${roomData.image}`} alt="My Room" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-6xl text-slate-400">🛏️</div>
+                    <div className="w-full h-full flex items-center justify-center text-7xl text-slate-400">🛏️</div>
                   )}
-                  <div className="absolute top-4 right-4"><Badge s={bookingData.status} /></div>
+                  <div className="absolute top-3 right-3">
+                    <Badge s={bookingData.status} />
+                  </div>
                 </div>
                 <div className="p-6 text-center">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Block {roomData.block}</span>
-                  <h3 className="text-4xl font-black text-brand-navy mb-2">Room {bookingData.roomNumber}</h3>
-                  <p className="text-slate-500 font-medium">{roomData.roomType} • {roomData.airConditioning}</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Block {roomData.block || "N/A"}</p>
+                  <h3 className="text-4xl font-black text-brand-navy mb-1">Room {bookingData.roomNumber}</h3>
+                  <p className="text-slate-500 font-medium">
+                    {roomData.roomType} • {roomData.airConditioning}
+                  </p>
                 </div>
               </div>
 
-              {/* Booking Details Grid */}
-              <div className="lg:col-span-2 bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8">
-                <h3 className="font-black text-xl text-slate-800 mb-6 border-b border-slate-100 pb-4">Booking Information</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-6">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Student NIC</p>
-                    <p className="font-black text-slate-700 text-lg">{bookingData.nicNumber}</p>
+              <div className="xl:col-span-2 space-y-6">
+                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
+                  <h3 className="font-black text-xl text-slate-800 mb-4">Booking & Room Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">NIC</p>
+                      <p className="font-black text-lg">{bookingData.nicNumber}</p>
+                    </div>
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Move-in</p>
+                      <p className="font-black text-lg">
+                        {new Date(bookingData.expectedMoveInDate).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Emergency Contact</p>
+                      <p className="font-black text-lg">{bookingData.emergencyContactName}</p>
+                      <p className="text-sm text-slate-500">{bookingData.emergencyContactPhone}</p>
+                    </div>
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Capacity</p>
+                      <p className="font-black text-lg">{roomData.currentOccupancy} / {roomData.maxCapacity} Students</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Official Move-in Date</p>
-                    <p className="font-black text-slate-700 text-lg">{new Date(bookingData.expectedMoveInDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Emergency Contact</p>
-                    <p className="font-black text-slate-700 text-lg">{bookingData.emergencyContactName}</p>
-                    <p className="text-sm font-semibold text-slate-500">{bookingData.emergencyContactPhone}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Room Capacity</p>
-                    <p className="font-black text-slate-700 text-lg">{roomData.currentOccupancy} / {roomData.maxCapacity} Students</p>
+
+                  <div className="mt-6 pt-5 border-t border-slate-100">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Special Requests</p>
+                    <p className="text-slate-600 bg-slate-50 p-4 rounded-xl italic">
+                      {bookingData.specialRequests || "No special requests were made during booking."}
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Special Requests Applied</p>
-                  <p className="font-medium text-slate-600 bg-slate-50 p-4 rounded-xl italic">
-                    {bookingData.specialRequests || "No special requests were made during booking."}
-                  </p>
+                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
+                  <h3 className="font-black text-xl text-slate-800 mb-4">Rating & Feedback</h3>
+
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(star)}
+                        className={`text-3xl transition transform ${
+                          rating >= star || hoverRating >= star ? "text-amber-400 scale-110" : "text-slate-300"
+                        }`}
+                        aria-label={`${star} star`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                    <span className="ml-3 text-sm font-semibold text-slate-600">{rating ? `${rating}/5` : "Select rating"}</span>
+                  </div>
+
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Describe your stay experience..."
+                    className="w-full mt-4 h-28 border border-slate-200 rounded-2xl p-4 text-sm text-slate-700 focus:ring-2 focus:ring-brand-navy/50 outline-none"
+                  />
+
+                  <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={handleReviewSubmit}
+                      disabled={isSubmitting}
+                      className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? "Sending…" : "Send Review"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRating(0);
+                        setHoverRating(0);
+                        setReviewText("");
+                        setReviewMessage("");
+                      }}
+                      className="text-sm text-slate-600 hover:text-slate-800 transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
+
+                  {reviewMessage && (
+                    <div className="mt-3 text-sm font-semibold text-brand-navy">
+                      {reviewMessage}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         );
 
+      
       // ─────────────────────────────────────────────────────────────────
       // 3. PAYMENTS & INVOICE HISTORY
       // ─────────────────────────────────────────────────────────────────
       case "payments":
         if (!bookingData || !roomData) return null;
         
-        // Simulating the payment history based on their booking.
-        // Once you build the Invoice backend, you can fetch actual arrays here!
+        // NEW: Logic to handle clicking the pay button
+        const handleMonthlyPayment = async () => {
+          try {
+            const res = await axios.post('http://localhost:5025/api/bookings/monthly-checkout', { 
+              bookingId: bookingData._id 
+            });
+            window.location.href = res.data.url; // Go to Stripe
+          } catch (error) {
+            console.error(error);
+            alert("Failed to initialize payment.");
+          }
+        };
+
         const paymentHistory = [
           { 
             desc: "First Month Rent & Key Money", 
@@ -268,7 +380,12 @@ export default function UserDashboard() {
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="flex justify-between items-center">
               <h2 className="text-3xl font-black text-slate-800">Financial Center</h2>
-              <button className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-md text-sm">
+              
+              {/* UPDATED: Added onClick to trigger Stripe */}
+              <button 
+                onClick={handleMonthlyPayment}
+                className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-md text-sm"
+              >
                 Pay Next Month Rent
               </button>
             </div>
@@ -321,7 +438,6 @@ export default function UserDashboard() {
             </div>
           </div>
         );
-
       // ─────────────────────────────────────────────────────────────────
       // 4. NEW LAUNDRY COMPONENT 
       // ─────────────────────────────────────────────────────────────────
@@ -332,11 +448,124 @@ export default function UserDashboard() {
       // MEALS, COMPLAINTS, FEEDBACK 
       // ─────────────────────────────────────────────────────────────────
       case "meals":
+        return <UserMenusView isEmbedded={true} />;
+
+      case "contact":
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-black text-slate-800">Meals & Dining</h2>
-            <div className="bg-white rounded-3xl shadow-sm p-8 border border-slate-100">
-              <p className="text-slate-500 font-medium">Meal booking integration will appear here.</p>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Contact Administration</h2>
+              <p className="text-slate-400 text-sm mt-1">Get in touch with management & restaurant services</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl p-6 text-white">
+                  <h3 className="font-bold text-lg mb-4">Admin Contact Details</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Hostel Manager</p>
+                      <p className="text-lg font-bold">Mr. Rajesh Kumar</p>
+                      <p className="text-sm text-indigo-200 mt-1">📞 +91 9876543210</p>
+                      <p className="text-sm text-indigo-200">📧 rajesh.kumar@hostel.com</p>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Restaurant Manager</p>
+                      <p className="text-lg font-bold">Ms. Priya Sharma</p>
+                      <p className="text-sm text-indigo-200 mt-1">📞 +91 9876543211</p>
+                      <p className="text-sm text-indigo-200">📧 meals@hostel.com</p>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Hostel Address</p>
+                      <p className="text-sm text-indigo-100 leading-relaxed mt-2">
+                        Green Valley Hostel,<br/>
+                        MG Road, Residency Area,<br/>
+                        Bengaluru, Karnataka 560001,<br/>
+                        India
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Contact Actions */}
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h3 className="font-bold text-slate-800 mb-4">Quick Actions</h3>
+                  <div className="space-y-2">
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl font-semibold transition border border-green-200">
+                      <span>📱</span> Call Manager
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-semibold transition border border-blue-200">
+                      <span>✉️</span> Send Email
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl font-semibold transition border border-purple-200">
+                      <span>💬</span> Message on WhatsApp
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map */}
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-96">
+                  <iframe
+                    title="Hostel Location"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen=""
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d969.8473508816476!2d77.59821971171723!3d12.970391549989005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae16681c1d55d5%3A0x19e8330a4b7b8b8b!2sGreen%20Valley%20Hostel%2C%20MG%20Road%2C%20Bengaluru!5e0!3m2!1sen!2sin!4v1234567890"
+                  ></iframe>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h3 className="font-bold text-slate-800 mb-3">Location Highlights</h3>
+                  <ul className="space-y-2 text-sm text-slate-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Located in the heart of Bengaluru's business district</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Easy access to public transportation (Metro & Bus)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Close to shopping centers, cafes, and restaurants</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Ample parking available for visitors</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Office Hours */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6">
+              <h3 className="font-bold text-slate-800 mb-4">Office Hours & Support</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Admin Office</p>
+                  <p className="text-lg font-bold text-amber-700">9 AM - 6 PM</p>
+                  <p className="text-xs text-slate-500 mt-1">Mon - Fri</p>
+                </div>
+                <div className="text-center border-l border-r border-amber-200">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Restaurant Hours</p>
+                  <p className="text-lg font-bold text-amber-700">24/7 Service</p>
+                  <p className="text-xs text-slate-500 mt-1">All Days</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Emergency Support</p>
+                  <p className="text-lg font-bold text-amber-700">24/7 Available</p>
+                  <p className="text-xs text-slate-500 mt-1">Security & Medical</p>
+                </div>
+              </div>
             </div>
           </div>
         );

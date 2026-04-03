@@ -29,7 +29,7 @@ export default function UserBookingCheckout() {
   useEffect(() => {
     const fetchRoomDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:5025/api/rooms/${roomId}`);
+        const response = await axios.get(`http://localhost:5000/api/rooms/${roomId}`);
         setRoom(response.data);
       } catch (err) {
         console.error("Error fetching room:", err);
@@ -54,9 +54,9 @@ export default function UserBookingCheckout() {
 
   const validateStep3AndProceed = () => {
     const newErrors = {};
-    const nicRegex = /^([0-9]{9}[vV]|[0-9]{12})$/;
+    const nicRegex = /^([0-9]{10}[vV]|[0-9]{12})$/;
     if (!nicRegex.test(formData.nicNumber)) {
-      newErrors.nicNumber = "Invalid NIC. Must be 12 digits or 9 digits followed by 'V'.";
+      newErrors.nicNumber = "Invalid NIC. Must be 12 digits or 10 digits followed by 'V'.";
     }
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(formData.emergencyContactPhone)) {
@@ -90,7 +90,7 @@ export default function UserBookingCheckout() {
         ...formData
       };
 
-      const response = await axios.post('http://localhost:5025/api/bookings/create-checkout', payload);
+      const response = await axios.post('http://localhost:5000/api/bookings/create-checkout', payload);
 
       if (response.data.url) {
         window.location.href = response.data.url;
