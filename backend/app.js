@@ -17,6 +17,9 @@ import feedbackRoutes from './routes/feedbackRoutes.js';
 import userRoutes from './routes/userRoutes.js'; // For testing only, to be removed later
 import restaurantRoutes from './routes/restaurantRoutes.js';
 import foodItemRoutes from './routes/foodItemRoutes.js';
+import chatbotRoutes from './routes/chatbotRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
 
 const app = express();
 
@@ -52,7 +55,11 @@ app.use('/api/meals', mealRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/restaurants', restaurantRoutes);
-app.use('/api/food-items', foodItemRoutes); 
+app.use('/api/food-items', foodItemRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/chatbot', chatbotRoutes);
+
 // ── Error Handling ────────────────────────────────────────────────────────────
 
 // Error handling middleware

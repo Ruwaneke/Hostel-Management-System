@@ -61,8 +61,8 @@ export default function CreateComplaint() {
     
     try {
       const submissionData = new FormData();
-      submissionData.append('title', formData.title);
-      submissionData.append('description', formData.description);
+      submissionData.append('title', formData.title.trim());
+      submissionData.append('description', formData.description.trim());
       submissionData.append('category', formData.category);
       submissionData.append('priority', formData.priority);
       if (imageFile) {
