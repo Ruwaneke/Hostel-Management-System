@@ -13,7 +13,7 @@ export default function AdminRooms() {
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/rooms');
+      const response = await axios.get('http://localhost:5025/api/rooms');
       setRooms(response.data);
     } catch (error) {
       console.error("Error fetching rooms:", error);

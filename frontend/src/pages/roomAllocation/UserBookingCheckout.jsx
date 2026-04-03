@@ -29,7 +29,7 @@ export default function UserBookingCheckout() {
   useEffect(() => {
     const fetchRoomDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/rooms/${roomId}`);
+        const response = await axios.get(`http://localhost:5025/api/rooms/${roomId}`);
         setRoom(response.data);
       } catch (err) {
         console.error("Error fetching room:", err);

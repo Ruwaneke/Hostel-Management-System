@@ -14,7 +14,7 @@ export default function AdminQRScanner() {
       setScanResult(bookingId);
       
       try {
-        const res = await axios.get(`http://localhost:5000/api/bookings/status-by-id/${bookingId}`);
+        const res = await axios.get(`http://localhost:5025/api/bookings/status-by-id/${bookingId}`);
         setStudentData(res.data.booking);
       } catch (err) {
         setError("Invalid QR Code or Booking Not Found");

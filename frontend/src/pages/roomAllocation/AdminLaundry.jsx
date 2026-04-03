@@ -39,8 +39,8 @@ export default function AdminLaundry() {
     setLoading(true);
     try {
       const [ordersRes, settingsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/laundry/all'),
-        axios.get('http://localhost:5000/api/laundry/settings')
+        axios.get('http://localhost:5025/api/laundry/all'),
+        axios.get('http://localhost:5025/api/laundry/settings')
       ]);
       setOrders(ordersRes.data);
       if (settingsRes.data) setSettings(settingsRes.data);
