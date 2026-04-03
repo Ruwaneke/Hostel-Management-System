@@ -106,35 +106,6 @@ export default function Register() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Role Selection */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-3">Register As:</label>
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, role: "student" })}
-                  className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 text-sm ${
-                    formData.role === "student"
-                      ? "bg-brand-gold text-brand-black shadow-lg ring-2 ring-brand-gold"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  👨‍🎓 Student
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, role: "admin" })}
-                  className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 text-sm ${
-                    formData.role === "admin"
-                      ? "bg-brand-gold text-brand-black shadow-lg ring-2 ring-brand-gold"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  👨‍💼 Admin
-                </button>
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">Name</label>
               <input

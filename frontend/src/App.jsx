@@ -58,10 +58,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
 
-<<<<<<< HEAD
             {/* Student/User Protected Routes */}
-=======
-            {/* Student Protected Routes */}
             <Route
               path="/book/:roomId"
               element={
@@ -95,7 +92,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
->>>>>>> e1726312aaa1d24fbc262fce9c43a46301170b26
             <Route
               path="/user-dashboard"
               element={
