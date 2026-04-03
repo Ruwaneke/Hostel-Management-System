@@ -19,6 +19,7 @@ export const createComplaint = async (req, res) => {
             });
         }
 
+        
         if (!['maintenance', 'noise', 'cleanliness', 'food', 'other'].includes(category)) {
             return res.status(400).json({
                 success: false,
@@ -296,7 +297,7 @@ const addNotification = (complaint, message) => {
 
 export const submitComplaint = async (req, res) => {
     try {
-        const { category, description, priority, title } = req.body;
+        const { category, description, priority, title, roomNumber, hostelBlock } = req.body;
 
         // Build image URL (if file uploaded)
         let imageUrl = req.body.imageUrl || null;
@@ -304,9 +305,9 @@ export const submitComplaint = async (req, res) => {
             imageUrl = `/uploads/${req.file.filename}`;
         }
 
-        // Get full user from DB so we see room allocation
+        // Get user details from DB
         const dbUser = await User.findById(req.user.id).select(
-            'userId name email roomNumber hostelBlock'
+            'userId name email'
         );
 
         if (!dbUser) {
@@ -316,15 +317,7 @@ export const submitComplaint = async (req, res) => {
             });
         }
 
-        // Require that admin has already allocated a room
-        if (!dbUser.roomNumber || !dbUser.hostelBlock) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    'Room number and hostel block are required. Please wait until the admin allocates your room.'
-            });
-        }
-
+        // Validate required fields from form
         if (!category || !description || !priority) {
             return res.status(400).json({
                 success: false,
@@ -332,18 +325,35 @@ export const submitComplaint = async (req, res) => {
             });
         }
 
+        // Validate room number and hostel block from form input
+        if (!roomNumber || !roomNumber.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Room number is required.'
+            });
+        }
+
+        if (!hostelBlock || !hostelBlock.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Hostel block is required.'
+            });
+        }
+
+        // Create student object with form data
         const student = {
             userId: dbUser.userId || String(dbUser._id),
             name: dbUser.name,
             email: dbUser.email,
-            roomNumber: dbUser.roomNumber,
-            hostelBlock: dbUser.hostelBlock
+            roomNumber: roomNumber.trim(),
+            hostelBlock: hostelBlock.trim()
         };
 
         const complaint = new Complaint({
             student,
             category,
             description,
+            title: title || category + ' Issue',
             imageUrl: imageUrl || null,
             priority,
             status: 'Pending',

@@ -1,21 +1,39 @@
 import mongoose from "mongoose";
 
 const laundrySchema = new mongoose.Schema({
-  fullName: { type: String, required: true, trim: true },
-  email: { type: String, required: true, trim: true },
-  telephone: { type: String, required: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  studentName: { type: String, required: true, trim: true },
+  studentEmail: { type: String, required: true, trim: true },
+   studentPhone: { 
+    type: String, 
+    required: [true, 'Phone number is required'],
+    match: [/^07[0-9]{8}$/, 'Phone must be a valid Sri Lankan number (07XXXXXXXX)']
+  },
+  roomNumber: { type: String, required: true },
 
-  service: { type: String, required: true }, // Washing / Ironing / Both
-  pieces: { type: Number, required: true, min: 1, max: 8 },
+  // NEW: Service Type
+  serviceType: { 
+    type: String, 
+    enum: ['Wash Only', 'Wash and Dry', 'Iron Only', 'Wash and Iron', 'Dry Clean'], 
+    required: true 
+  },
+  
+  packageType: { type: String, enum: ['One Day Service', 'Two Day Service', 'Weekly Service'], required: true },
+  pieces: { type: Number, required: true, min: 1 },
+  pricePerPiece: { type: Number, required: true },
+  totalAmount: { type: Number, required: true },
 
-  date: { type: String, required: true }, // ISO string (YYYY-MM-DD)
-  timeSlot: { type: String, required: true },
+  // NEW: Special Instructions from Student
+  specialInstructions: { type: String, default: '' },
 
-  location: { type: String, required: true },
+  image: { type: String, default: null }, 
 
-  addons: [{ type: String }], // ["Express Service", "Folding Service"]
+  status: { type: String, enum: ['Pending Drop-off', 'Washing', 'Ready for Pickup', 'Delivered'], default: 'Pending Drop-off' },
+  adminNote: { type: String, default: '' },
 
-  totalAmount: { type: Number, required: true, min: 0 },
+  paymentStatus: { type: String, enum: ['Unpaid', 'Paid'], default: 'Unpaid' },
+  stripeSessionId: { type: String },
+  paidAt: { type: Date }
 
 }, { timestamps: true });
 
