@@ -54,9 +54,9 @@ export default function UserBookingCheckout() {
 
   const validateStep3AndProceed = () => {
     const newErrors = {};
-    const nicRegex = /^([0-9]{9}[vV]|[0-9]{12})$/;
+    const nicRegex = /^([0-9]{10}[vV]|[0-9]{12})$/;
     if (!nicRegex.test(formData.nicNumber)) {
-      newErrors.nicNumber = "Invalid NIC. Must be 12 digits or 9 digits followed by 'V'.";
+      newErrors.nicNumber = "Invalid NIC. Must be 12 digits or 10 digits followed by 'V'.";
     }
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(formData.emergencyContactPhone)) {
