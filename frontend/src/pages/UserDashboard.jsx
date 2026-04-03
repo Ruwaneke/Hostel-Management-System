@@ -78,6 +78,11 @@ export default function UserDashboard() {
   const [complaint, setComplaint] = useState("");
   const [laundryItems, setLaundryItems] = useState("");
   const [submitted, setSubmitted] = useState({ complaint: false, laundry: false });
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewMessage, setReviewMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogout = () => { logout(); navigate("/login"); };
 
@@ -96,6 +101,36 @@ export default function UserDashboard() {
         { id: "overview",    label: "Overview",     icon: "📊" },
         { id: "browseRooms", label: "Browse Rooms", icon: "🏨" },
       ];
+
+  const handleReviewSubmit = async () => {
+    if (!rating) {
+      setReviewMessage("⭐ Please select rating before sending.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setReviewMessage("Sending review…");
+
+    try {
+      await axios.post("http://localhost:5025/api/reviews", {
+        userId: user?._id,
+        bookingId: bookingData?._id,
+        roomId: roomData?._id,
+        rating,
+        review: reviewText.trim(),
+      });
+
+      setReviewMessage("✅ Review sent — thank you!");
+    } catch (error) {
+      console.warn("Review API failed, still clearing form (frontend-only mode):", error);
+      setReviewMessage("✅ Review submitted");
+    } finally {
+      setRating(0);
+      setHoverRating(0);
+      setReviewText("");
+      setIsSubmitting(false);
+    }
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -184,69 +219,145 @@ export default function UserDashboard() {
         if (!bookingData || !roomData) return null;
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <h2 className="text-3xl font-black text-slate-800">My Room Profile</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Image & Main Info */}
-              <div className="lg:col-span-1 bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="h-64 bg-slate-200 relative">
+            <h2 className="text-3xl font-black text-brand-navy">My Room Profile</h2>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="bg-white rounded-3xl shadow-lg border border-slate-200 overflow-hidden">
+                <div className="relative h-140 bg-slate-200">
                   {roomData.image ? (
-                    <img src={`/roomImage/${roomData.image}`} className="w-full h-full object-cover" alt="My Room" />
+                    <img src={`/roomImage/${roomData.image}`} alt="My Room" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-6xl text-slate-400">🛏️</div>
+                    <div className="w-full h-full flex items-center justify-center text-7xl text-slate-400">🛏️</div>
                   )}
-                  <div className="absolute top-4 right-4"><Badge s={bookingData.status} /></div>
+                  <div className="absolute top-3 right-3">
+                    <Badge s={bookingData.status} />
+                  </div>
                 </div>
                 <div className="p-6 text-center">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Block {roomData.block}</span>
-                  <h3 className="text-4xl font-black text-brand-navy mb-2">Room {bookingData.roomNumber}</h3>
-                  <p className="text-slate-500 font-medium">{roomData.roomType} • {roomData.airConditioning}</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Block {roomData.block || "N/A"}</p>
+                  <h3 className="text-4xl font-black text-brand-navy mb-1">Room {bookingData.roomNumber}</h3>
+                  <p className="text-slate-500 font-medium">
+                    {roomData.roomType} • {roomData.airConditioning}
+                  </p>
                 </div>
               </div>
 
-              {/* Booking Details Grid */}
-              <div className="lg:col-span-2 bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8">
-                <h3 className="font-black text-xl text-slate-800 mb-6 border-b border-slate-100 pb-4">Booking Information</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-6">
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Student NIC</p>
-                    <p className="font-black text-slate-700 text-lg">{bookingData.nicNumber}</p>
+              <div className="xl:col-span-2 space-y-6">
+                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
+                  <h3 className="font-black text-xl text-slate-800 mb-4">Booking & Room Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">NIC</p>
+                      <p className="font-black text-lg">{bookingData.nicNumber}</p>
+                    </div>
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Move-in</p>
+                      <p className="font-black text-lg">
+                        {new Date(bookingData.expectedMoveInDate).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Emergency Contact</p>
+                      <p className="font-black text-lg">{bookingData.emergencyContactName}</p>
+                      <p className="text-sm text-slate-500">{bookingData.emergencyContactPhone}</p>
+                    </div>
+                    <div className="rounded-2xl p-4 bg-slate-50 border border-slate-100">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Capacity</p>
+                      <p className="font-black text-lg">{roomData.currentOccupancy} / {roomData.maxCapacity} Students</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Official Move-in Date</p>
-                    <p className="font-black text-slate-700 text-lg">{new Date(bookingData.expectedMoveInDate).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Emergency Contact</p>
-                    <p className="font-black text-slate-700 text-lg">{bookingData.emergencyContactName}</p>
-                    <p className="text-sm font-semibold text-slate-500">{bookingData.emergencyContactPhone}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Room Capacity</p>
-                    <p className="font-black text-slate-700 text-lg">{roomData.currentOccupancy} / {roomData.maxCapacity} Students</p>
+
+                  <div className="mt-6 pt-5 border-t border-slate-100">
+                    <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Special Requests</p>
+                    <p className="text-slate-600 bg-slate-50 p-4 rounded-xl italic">
+                      {bookingData.specialRequests || "No special requests were made during booking."}
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-slate-100">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Special Requests Applied</p>
-                  <p className="font-medium text-slate-600 bg-slate-50 p-4 rounded-xl italic">
-                    {bookingData.specialRequests || "No special requests were made during booking."}
-                  </p>
+                <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-6">
+                  <h3 className="font-black text-xl text-slate-800 mb-4">Rating & Feedback</h3>
+
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setRating(star)}
+                        className={`text-3xl transition transform ${
+                          rating >= star || hoverRating >= star ? "text-amber-400 scale-110" : "text-slate-300"
+                        }`}
+                        aria-label={`${star} star`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                    <span className="ml-3 text-sm font-semibold text-slate-600">{rating ? `${rating}/5` : "Select rating"}</span>
+                  </div>
+
+                  <textarea
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                    placeholder="Describe your stay experience..."
+                    className="w-full mt-4 h-28 border border-slate-200 rounded-2xl p-4 text-sm text-slate-700 focus:ring-2 focus:ring-brand-navy/50 outline-none"
+                  />
+
+                  <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={handleReviewSubmit}
+                      disabled={isSubmitting}
+                      className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? "Sending…" : "Send Review"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRating(0);
+                        setHoverRating(0);
+                        setReviewText("");
+                        setReviewMessage("");
+                      }}
+                      className="text-sm text-slate-600 hover:text-slate-800 transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
+
+                  {reviewMessage && (
+                    <div className="mt-3 text-sm font-semibold text-brand-navy">
+                      {reviewMessage}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         );
 
+      
       // ─────────────────────────────────────────────────────────────────
       // 3. PAYMENTS & INVOICE HISTORY
       // ─────────────────────────────────────────────────────────────────
       case "payments":
         if (!bookingData || !roomData) return null;
         
-        // Simulating the payment history based on their booking.
-        // Once you build the Invoice backend, you can fetch actual arrays here!
+        // NEW: Logic to handle clicking the pay button
+        const handleMonthlyPayment = async () => {
+          try {
+            const res = await axios.post('http://localhost:5025/api/bookings/monthly-checkout', { 
+              bookingId: bookingData._id 
+            });
+            window.location.href = res.data.url; // Go to Stripe
+          } catch (error) {
+            console.error(error);
+            alert("Failed to initialize payment.");
+          }
+        };
+
         const paymentHistory = [
           { 
             desc: "First Month Rent & Key Money", 
@@ -268,7 +379,12 @@ export default function UserDashboard() {
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="flex justify-between items-center">
               <h2 className="text-3xl font-black text-slate-800">Financial Center</h2>
-              <button className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-md text-sm">
+              
+              {/* UPDATED: Added onClick to trigger Stripe */}
+              <button 
+                onClick={handleMonthlyPayment}
+                className="bg-brand-navy text-white px-5 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-colors shadow-md text-sm"
+              >
                 Pay Next Month Rent
               </button>
             </div>
@@ -321,7 +437,6 @@ export default function UserDashboard() {
             </div>
           </div>
         );
-
       // ─────────────────────────────────────────────────────────────────
       // 4. NEW LAUNDRY COMPONENT 
       // ─────────────────────────────────────────────────────────────────

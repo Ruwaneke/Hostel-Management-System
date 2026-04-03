@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -15,24 +15,33 @@ import UserComplaints from './pages/UserComplaints';
 import AdminComplaints from './pages/AdminComplaints';
 import './index.css';
 
-// Booking Pages
+// Booking & Payment Pages
 import UserBookingCheckout from './pages/RoomAllocation/UserBookingCheckout';
 import PaymentSuccess from './pages/RoomAllocation/PaymentSuccess'; 
+import MonthlyPaymentSuccess from './pages/RoomAllocation/MonthlyPaymentSuccess'; // <-- NEW IMPORT
 
 // Laundry Pages
 import LaundrySuccess from './pages/Londary/LaundrySuccess';
 
-// --- NEW CHATBOT IMPORT ---
+// Chatbot Component
 import Chatbot from './components/Chatbot';
+
+// Wrapper Component to conditionally render the Chatbot
+const ChatbotWrapper = () => {
+  const { user } = useAuth();
+  
+  if (user && user.role === 'user') {
+    return <Chatbot />;
+  }
+  
+  return null;
+};
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ToastProvider>
-          {/* Routes define which component to show based on the URL.
-              The Chatbot is placed outside Routes so it persists everywhere.
-          */}
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
@@ -56,6 +65,15 @@ function App() {
               element={
                 <ProtectedRoute requiredRole="user">
                   <PaymentSuccess />
+                </ProtectedRoute>
+              }
+            />
+            {/* --- NEW: MONTHLY RENT SUCCESS ROUTE --- */}
+            <Route
+              path="/monthly-success/:bookingId"
+              element={
+                <ProtectedRoute requiredRole="user">
+                  <MonthlyPaymentSuccess />
                 </ProtectedRoute>
               }
             />
@@ -113,8 +131,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
 
-          {/* --- SMART HOSTEL ASSISTANT WIDGET --- */}
-          <Chatbot />
+          <ChatbotWrapper />
 
         </ToastProvider>
       </AuthProvider>
