@@ -13,6 +13,10 @@ import Unauthorized from './pages/Unauthorized';
 import CreateComplaint from './pages/CreateComplaint';
 import UserComplaints from './pages/UserComplaints';
 import AdminComplaints from './pages/AdminComplaints';
+import AdminRestaurants from './pages/AdminRestaurants';
+import AdminRestaurantDetails from './pages/AdminRestaurantDetails';
+import AdminMenus from './pages/AdminMenus';
+import UserMenusView from './pages/UserMenusView';
 import './index.css';
 
 // Booking & Payment Pages
@@ -39,7 +43,10 @@ const ChatbotWrapper = () => {
 
 function App() {
   return (
-    <Router>
+    <Router future={{
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    }}>
       <AuthProvider>
         <ToastProvider>
           <Routes>
@@ -51,6 +58,9 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
 
+<<<<<<< HEAD
+            {/* Student/User Protected Routes */}
+=======
             {/* Student Protected Routes */}
             <Route
               path="/book/:roomId"
@@ -85,10 +95,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
+>>>>>>> e1726312aaa1d24fbc262fce9c43a46301170b26
             <Route
               path="/user-dashboard"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <UserDashboard />
                 </ProtectedRoute>
               }
@@ -96,7 +107,7 @@ function App() {
             <Route
               path="/create-complaint"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <CreateComplaint />
                 </ProtectedRoute>
               }
@@ -104,8 +115,16 @@ function App() {
             <Route
               path="/user-complaints"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <UserComplaints />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user/menus"
+              element={
+                <ProtectedRoute requiredRole={['user', 'student']}>
+                  <UserMenusView />
                 </ProtectedRoute>
               }
             />
@@ -124,6 +143,30 @@ function App() {
               element={
                 <ProtectedRoute requiredRole={['admin', 'staff']}>
                   <AdminComplaints />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/restaurants"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminRestaurants />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/restaurants/:id"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminRestaurantDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/menus"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminMenus />
                 </ProtectedRoute>
               }
             />

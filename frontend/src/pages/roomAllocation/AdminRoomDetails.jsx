@@ -29,7 +29,7 @@ export default function AdminRoomDetails({ room, onBack, onEdit }) {
       try {
         // NOTE: You will need to create this route in your backend next!
         // It should return all bookings for this roomId, populated with their invoices.
-        const response = await axios.get(`http://localhost:5025/api/bookings/room/${room._id}`);
+        const response = await axios.get(`http://localhost:5000/api/bookings/room/${room._id}`);
         setOccupants(response.data);
       } catch (error) {
         console.error("Error fetching room occupants:", error);

@@ -5,6 +5,7 @@ import axios from "axios";
 
 import UserComplaints from "./UserComplaints";
 import UserFeedback from "./UserFeedback";
+import UserMenusView from "./UserMenusView";
 import UserBrowseRooms from "./RoomAllocation/UserBrowseRooms";
 
 // --- NEW IMPORT ---
@@ -48,7 +49,7 @@ export default function UserDashboard() {
       if (user && user._id) {
         try {
           // 1. Check if they have a booking
-          const statusRes = await axios.get(`http://localhost:5025/api/bookings/status/${user._id}`);
+          const statusRes = await axios.get(`http://localhost:5000/api/bookings/status/${user._id}`);
           const hasRoom = statusRes.data.hasBooking;
           setHasBooking(hasRoom);
           
@@ -57,7 +58,7 @@ export default function UserDashboard() {
             setBookingData(bData);
             
             // 2. If they have a booking, fetch the specific room data (for the image & amenities)
-            const roomRes = await axios.get(`http://localhost:5025/api/rooms/${bData.roomId}`);
+            const roomRes = await axios.get(`http://localhost:5000/api/rooms/${bData.roomId}`);
             setRoomData(roomRes.data);
 
             if (active === "browseRooms") setActive("overview");
@@ -447,11 +448,124 @@ export default function UserDashboard() {
       // MEALS, COMPLAINTS, FEEDBACK 
       // ─────────────────────────────────────────────────────────────────
       case "meals":
+        return <UserMenusView isEmbedded={true} />;
+
+      case "contact":
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-black text-slate-800">Meals & Dining</h2>
-            <div className="bg-white rounded-3xl shadow-sm p-8 border border-slate-100">
-              <p className="text-slate-500 font-medium">Meal booking integration will appear here.</p>
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Contact Administration</h2>
+              <p className="text-slate-400 text-sm mt-1">Get in touch with management & restaurant services</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl p-6 text-white">
+                  <h3 className="font-bold text-lg mb-4">Admin Contact Details</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Hostel Manager</p>
+                      <p className="text-lg font-bold">Mr. Rajesh Kumar</p>
+                      <p className="text-sm text-indigo-200 mt-1">📞 +91 9876543210</p>
+                      <p className="text-sm text-indigo-200">📧 rajesh.kumar@hostel.com</p>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Restaurant Manager</p>
+                      <p className="text-lg font-bold">Ms. Priya Sharma</p>
+                      <p className="text-sm text-indigo-200 mt-1">📞 +91 9876543211</p>
+                      <p className="text-sm text-indigo-200">📧 meals@hostel.com</p>
+                    </div>
+
+                    <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                      <p className="text-xs text-indigo-100 font-semibold uppercase mb-1">Hostel Address</p>
+                      <p className="text-sm text-indigo-100 leading-relaxed mt-2">
+                        Green Valley Hostel,<br/>
+                        MG Road, Residency Area,<br/>
+                        Bengaluru, Karnataka 560001,<br/>
+                        India
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Contact Actions */}
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h3 className="font-bold text-slate-800 mb-4">Quick Actions</h3>
+                  <div className="space-y-2">
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl font-semibold transition border border-green-200">
+                      <span>📱</span> Call Manager
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl font-semibold transition border border-blue-200">
+                      <span>✉️</span> Send Email
+                    </button>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl font-semibold transition border border-purple-200">
+                      <span>💬</span> Message on WhatsApp
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map */}
+              <div className="space-y-4">
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden h-96">
+                  <iframe
+                    title="Hostel Location"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen=""
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d969.8473508816476!2d77.59821971171723!3d12.970391549989005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae16681c1d55d5%3A0x19e8330a4b7b8b8b!2sGreen%20Valley%20Hostel%2C%20MG%20Road%2C%20Bengaluru!5e0!3m2!1sen!2sin!4v1234567890"
+                  ></iframe>
+                </div>
+
+                <div className="bg-white rounded-2xl shadow-sm p-6">
+                  <h3 className="font-bold text-slate-800 mb-3">Location Highlights</h3>
+                  <ul className="space-y-2 text-sm text-slate-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Located in the heart of Bengaluru's business district</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Easy access to public transportation (Metro & Bus)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Close to shopping centers, cafes, and restaurants</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-indigo-600 font-bold mt-0.5">✓</span>
+                      <span>Ample parking available for visitors</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Office Hours */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6">
+              <h3 className="font-bold text-slate-800 mb-4">Office Hours & Support</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Admin Office</p>
+                  <p className="text-lg font-bold text-amber-700">9 AM - 6 PM</p>
+                  <p className="text-xs text-slate-500 mt-1">Mon - Fri</p>
+                </div>
+                <div className="text-center border-l border-r border-amber-200">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Restaurant Hours</p>
+                  <p className="text-lg font-bold text-amber-700">24/7 Service</p>
+                  <p className="text-xs text-slate-500 mt-1">All Days</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-slate-500 font-semibold mb-1">Emergency Support</p>
+                  <p className="text-lg font-bold text-amber-700">24/7 Available</p>
+                  <p className="text-xs text-slate-500 mt-1">Security & Medical</p>
+                </div>
+              </div>
             </div>
           </div>
         );

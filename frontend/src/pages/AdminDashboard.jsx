@@ -10,6 +10,10 @@ import AdminRooms from "./RoomAllocation/AdminRooms";
 import AdminPayments from "./RoomAllocation/AdminPayments"; 
 import AdminLaundry from "./RoomAllocation/AdminLaundry";
 
+// --- NEW IMPORTS FOR MEALS MANAGEMENT ---
+import AdminRestaurants from "./AdminRestaurants";
+import AdminMenus from "./AdminMenus";
+
 const menuItems = [
   { id: "dashboard",  label: "Dashboard",  icon: "📊" },
   { id: "users",      label: "Users",      icon: "👥" },
@@ -49,6 +53,7 @@ const TD = ({ children }) => <td className="px-4 py-4 text-sm font-semibold text
 
 export default function AdminDashboard() {
   const [active, setActive]       = useState("dashboard");
+  const [mealsSubmenu, setMealsSubmenu] = useState("restaurants");
   const [collapsed, setCollapsed] = useState(false);
 
   const { user, logout }          = useAuth();
@@ -278,6 +283,49 @@ export default function AdminDashboard() {
           <div className="bg-brand-white rounded-3xl shadow-sm overflow-hidden h-full flex flex-col border border-brand-platinum/30">
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative">
               <AdminComplaints isEmbedded={true} />
+            </div>
+          </div>
+        );
+
+      case "meals":
+        return (
+          <div className="space-y-6">
+            <div className="bg-brand-white rounded-3xl shadow-sm border border-brand-platinum/30 overflow-hidden">
+              {/* Meals Navigation Header */}
+              <div className="bg-gradient-to-r from-brand-navy to-brand-navy/80 text-brand-platinum p-6 border-b border-brand-white/10">
+                <h2 className="text-2xl font-bold mb-4">🍽️ Meals Management</h2>
+                <p className="text-brand-platinum/70">Manage restaurants and food items</p>
+              </div>
+
+              {/* Meals Navigation Tabs */}
+              <div className="flex border-b border-brand-platinum/20 bg-brand-platinum/5">
+                <button
+                  onClick={() => setMealsSubmenu("restaurants")}
+                  className={`flex-1 px-6 py-4 text-center font-semibold transition-all border-b-2 ${
+                    mealsSubmenu === "restaurants"
+                      ? "border-brand-navy text-brand-navy bg-brand-white"
+                      : "border-transparent text-slate-600 hover:text-brand-navy"
+                  }`}
+                >
+                  🏪 Manage Restaurants
+                </button>
+                <button
+                  onClick={() => setMealsSubmenu("menus")}
+                  className={`flex-1 px-6 py-4 text-center font-semibold transition-all border-b-2 ${
+                    mealsSubmenu === "menus"
+                      ? "border-brand-navy text-brand-navy bg-brand-white"
+                      : "border-transparent text-slate-600 hover:text-brand-navy"
+                  }`}
+                >
+                  🍲 View Menus
+                </button>
+              </div>
+
+              {/* Content Area */}
+              <div className="p-6 max-h-[calc(100vh-300px)] overflow-y-auto custom-scrollbar">
+                {mealsSubmenu === "restaurants" && <AdminRestaurants isEmbedded={true} />}
+                {mealsSubmenu === "menus" && <AdminMenus isEmbedded={true} />}
+              </div>
             </div>
           </div>
         );

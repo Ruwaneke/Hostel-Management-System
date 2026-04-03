@@ -9,7 +9,8 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    role: "student"
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,15 +53,20 @@ export default function Register() {
       const response = await authAPI.register({
         name: formData.name,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        role: formData.role
       });
 
       if (response.success) {
         // Success toast
-        toast.success("Registration Successful", "Account created! Redirecting to login...");
+        toast.success("Registration Successful", "Account created! Redirecting...");
         login(response.user, response.token);
-        // Redirect to login after a brief delay so they see the toast
-        setTimeout(() => navigate("/login"), 1500);
+        
+        // Redirect based on role
+        const redirectPath = response.user.role === 'admin' ? '/admin-dashboard' : '/user-dashboard';
+        
+        // Redirect after a brief delay so they see the toast
+        setTimeout(() => navigate(redirectPath), 1500);
       } else {
         const errMsg = response.message || "Registration failed";
         setError(errMsg);
@@ -88,8 +94,8 @@ export default function Register() {
             <div className="w-16 h-16 bg-brand-gold rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-4 ring-4 ring-brand-gold/30">
               🏠
             </div>
-            <h1 className="text-3xl font-extrabold text-brand-black tracking-tight">Create Student Account</h1>
-            <p className="text-slate-500 text-sm mt-2">Join HostelMS as a student</p>
+            <h1 className="text-3xl font-extrabold text-brand-black tracking-tight">Create Account</h1>
+            <p className="text-slate-500 text-sm mt-2">Join HostelMS</p>
           </div>
 
           {error && (
@@ -100,6 +106,35 @@ export default function Register() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Role Selection */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-3">Register As:</label>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: "student" })}
+                  className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 text-sm ${
+                    formData.role === "student"
+                      ? "bg-brand-gold text-brand-black shadow-lg ring-2 ring-brand-gold"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  👨‍🎓 Student
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: "admin" })}
+                  className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 text-sm ${
+                    formData.role === "admin"
+                      ? "bg-brand-gold text-brand-black shadow-lg ring-2 ring-brand-gold"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  👨‍💼 Admin
+                </button>
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">Name</label>
               <input
