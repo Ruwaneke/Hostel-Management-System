@@ -29,18 +29,7 @@ export default function Chatbot() {
     setIsTyping(true); // Show typing animation
 
     try {
-<<<<<<< HEAD
-      const res = await axios.post('http://localhost:5000/api/chatbot/query', { message: input });
-      const botMsg = { 
-        sender: 'bot', 
-        text: res.data.reply, 
-        suggestions: res.data.suggestions 
-      };
-      setMessages(prev => [...prev, botMsg]);
-    } catch (err) {
-      setMessages(prev => [...prev, { sender: 'bot', text: 'Oops! Error connecting to server.' }]);
-=======
-      const res = await axios.post('http://localhost:5025/api/chatbot/query', { message: text });
+      const res = await axios.post('http://localhost:5000/api/chatbot/query', { message: text });
       
       // Simulate a slight human delay for a premium feel
       setTimeout(() => {
@@ -53,10 +42,9 @@ export default function Chatbot() {
         setIsTyping(false);
       }, 600);
 
-    } catch {
+    } catch (err) {
       setIsTyping(false);
       setMessages(prev => [...prev, { sender: 'bot', text: 'Oops, server unavailable. Try later.' }]);
->>>>>>> e1726312aaa1d24fbc262fce9c43a46301170b26
     }
   };
 
