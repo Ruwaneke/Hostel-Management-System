@@ -88,7 +88,7 @@ function App() {
             <Route
               path="/laundry-success"
               element={
-                <ProtectedRoute requiredRole="student">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <LaundrySuccess />
                 </ProtectedRoute>
               }
