@@ -29,7 +29,7 @@ export default function Chatbot() {
     setIsTyping(true); // Show typing animation
 
     try {
-      const res = await axios.post('http://localhost:5000/api/chatbot/query', { message: text });
+      const res = await axios.post('http://localhost:5025/api/chatbot/query', { message: text });
       
       // Simulate a slight human delay for a premium feel
       setTimeout(() => {
