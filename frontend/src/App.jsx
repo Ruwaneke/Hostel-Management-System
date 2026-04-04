@@ -62,7 +62,7 @@ function App() {
             <Route
               path="/book/:roomId"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole="student">
                   <UserBookingCheckout />
                 </ProtectedRoute>
               }
@@ -70,7 +70,7 @@ function App() {
             <Route
               path="/payment-success/:bookingId"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole="student">
                   <PaymentSuccess />
                 </ProtectedRoute>
               }
@@ -79,7 +79,7 @@ function App() {
             <Route
               path="/monthly-success/:bookingId"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole="student">
                   <MonthlyPaymentSuccess />
                 </ProtectedRoute>
               }
@@ -87,7 +87,7 @@ function App() {
             <Route
               path="/laundry-success"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole="student">
                   <LaundrySuccess />
                 </ProtectedRoute>
               }
