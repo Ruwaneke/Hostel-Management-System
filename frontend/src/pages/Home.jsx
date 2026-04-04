@@ -47,7 +47,7 @@ export default function Home() {
   useEffect(() => {
     const fetchRooms = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/rooms');
+        const response = await axios.get('http://localhost:5025/api/rooms');
         const availableRooms = response.data.filter(room => room.display === true && room.status === 'Available');
         setRooms(availableRooms.slice(0, 6)); 
       } catch (error) {

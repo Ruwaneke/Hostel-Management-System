@@ -10,7 +10,7 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "student"
+    role: "user"
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
