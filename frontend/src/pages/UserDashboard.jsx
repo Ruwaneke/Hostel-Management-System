@@ -6,7 +6,7 @@ import axios from "axios";
 import UserComplaints from "./UserComplaints";
 import UserFeedback from "./UserFeedback";
 import UserMenusView from "./UserMenusView";
-import UserBrowseRooms from "./RoomAllocation/UserBrowseRooms";
+import UserBrowseRooms from "./roomAllocation/UserBrowseRooms";
 
 // --- NEW IMPORT ---
 import StudentLaundry from "./Londary/StudentLaundry";
@@ -49,7 +49,7 @@ export default function UserDashboard() {
       if (user && user._id) {
         try {
           // 1. Check if they have a booking
-          const statusRes = await axios.get(`http://localhost:5000/api/bookings/status/${user._id}`);
+          const statusRes = await axios.get(`http://localhost:5025/api/bookings/status/${user._id}`);
           const hasRoom = statusRes.data.hasBooking;
           setHasBooking(hasRoom);
           
@@ -58,7 +58,7 @@ export default function UserDashboard() {
             setBookingData(bData);
             
             // 2. If they have a booking, fetch the specific room data (for the image & amenities)
-            const roomRes = await axios.get(`http://localhost:5000/api/rooms/${bData.roomId}`);
+            const roomRes = await axios.get(`http://localhost:5025/api/rooms/${bData.roomId}`);
             setRoomData(roomRes.data);
 
             if (active === "browseRooms") setActive("overview");

@@ -41,8 +41,8 @@ export default function AdminLaundry() {
     setLoading(true);
     try {
       const [ordersRes, settingsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/laundry/all'),
-        axios.get('http://localhost:5000/api/laundry/settings')
+        axios.get('http://localhost:5025/api/laundry/all'),
+        axios.get('http://localhost:5025/api/laundry/settings')
       ]);
       setOrders(ordersRes.data);
       if (settingsRes.data) setSettings(settingsRes.data);
@@ -61,7 +61,7 @@ export default function AdminLaundry() {
     e.preventDefault();
     setSavingSettings(true);
     try {
-      await axios.put('http://localhost:5000/api/laundry/settings', settings);
+      await axios.put('http://localhost:5025/api/laundry/settings', settings);
       alert("Pricing updated successfully!");
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -78,7 +78,7 @@ export default function AdminLaundry() {
 
   const handleUpdateOrder = async (newStatus) => {
     try {
-      const res = await axios.put(`http://localhost:5000/api/laundry/${selectedOrder._id}/status`, {
+      const res = await axios.put(`http://localhost:5025/api/laundry/${selectedOrder._id}/status`, {
         status: newStatus,
         adminNote: adminNoteInput
       });

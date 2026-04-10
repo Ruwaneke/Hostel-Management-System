@@ -81,7 +81,7 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
     }
 
     try {
-      const res = await axios.post('http://localhost:5000/api/laundry/create-checkout', submitData, {
+      const res = await axios.post('http://localhost:5025/api/laundry/create-checkout', submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       window.location.href = res.data.url; 

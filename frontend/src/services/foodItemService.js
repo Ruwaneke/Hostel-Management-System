@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/food-items';
+const API_BASE_URL = 'http://localhost:5025/api/food-items';
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('token');

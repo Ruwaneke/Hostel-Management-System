@@ -6,9 +6,9 @@ import axios from "axios";
 // Components
 import AdminComplaints from "./AdminComplaints";
 import AdminFeedback from "./AdminFeedback";
-import AdminRooms from "./RoomAllocation/AdminRooms"; 
-import AdminPayments from "./RoomAllocation/AdminPayments"; 
-import AdminLaundry from "./RoomAllocation/AdminLaundry";
+import AdminRooms from "./roomAllocation/AdminRooms"; 
+import AdminPayments from "./roomAllocation/AdminPayments"; 
+import AdminLaundry from "./roomAllocation/AdminLaundry";
 
 // --- NEW IMPORTS FOR MEALS MANAGEMENT ---
 import AdminRestaurants from "./AdminRestaurants";

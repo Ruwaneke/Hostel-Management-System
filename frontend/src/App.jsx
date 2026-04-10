@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext'; // Import useAuth
 import { ToastProvider } from './components/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import Home from './pages/Home';
@@ -22,7 +22,7 @@ import './index.css';
 // Booking & Payment Pages
 import UserBookingCheckout from './pages/RoomAllocation/UserBookingCheckout';
 import PaymentSuccess from './pages/RoomAllocation/PaymentSuccess'; 
-import MonthlyPaymentSuccess from './pages/RoomAllocation/MonthlyPaymentSuccess'; // <-- NEW IMPORT
+import MonthlyPaymentSuccess from './pages/RoomAllocation/MonthlyPaymentSuccess'; 
 
 // Laundry Pages
 import LaundrySuccess from './pages/Londary/LaundrySuccess';
@@ -30,15 +30,17 @@ import LaundrySuccess from './pages/Londary/LaundrySuccess';
 // Chatbot Component
 import Chatbot from './components/Chatbot';
 
-// Wrapper Component to conditionally render the Chatbot
+// --- UPDATED: Wrapper Component to conditionally render the Chatbot ---
 const ChatbotWrapper = () => {
   const { user } = useAuth();
   
-  if (user && user.role === 'user') {
-    return <Chatbot />;
+  // If the user is logged in AND is an admin or staff, HIDE the chatbot
+  if (user && (user.role === 'admin' || user.role === 'staff')) {
+    return null;
   }
   
-  return null;
+  // For everyone else (unlogged users, logged-in students, room booked users), SHOW the chatbot
+  return <Chatbot />;
 };
 
 function App() {
@@ -62,7 +64,7 @@ function App() {
             <Route
               path="/book/:roomId"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole="student">
                   <UserBookingCheckout />
                 </ProtectedRoute>
               }
@@ -70,16 +72,15 @@ function App() {
             <Route
               path="/payment-success/:bookingId"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole="student">
                   <PaymentSuccess />
                 </ProtectedRoute>
               }
             />
-            {/* --- NEW: MONTHLY RENT SUCCESS ROUTE --- */}
             <Route
               path="/monthly-success/:bookingId"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole="student">
                   <MonthlyPaymentSuccess />
                 </ProtectedRoute>
               }
@@ -87,7 +88,7 @@ function App() {
             <Route
               path="/laundry-success"
               element={
-                <ProtectedRoute requiredRole="user">
+                <ProtectedRoute requiredRole={['user', 'student']}>
                   <LaundrySuccess />
                 </ProtectedRoute>
               }
@@ -170,6 +171,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
 
+          {/* Render the wrapper so the chatbot shows for non-admins */}
           <ChatbotWrapper />
 
         </ToastProvider>

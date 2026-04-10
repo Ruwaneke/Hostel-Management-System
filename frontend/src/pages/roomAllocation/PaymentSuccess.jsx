@@ -16,7 +16,7 @@ export default function PaymentSuccess() {
     const verifyPayment = async () => {
       try {
         // Send the booking ID and Stripe Session ID to your backend to officially mark it as PAID
-        await axios.post('http://localhost:5000/api/bookings/verify-payment', {
+        await axios.post('http://localhost:5025/api/bookings/verify-payment', {
           bookingId,
           stripeSessionId: sessionId
         });

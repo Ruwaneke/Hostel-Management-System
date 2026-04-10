@@ -13,7 +13,7 @@ export default function UserBrowseRooms() {
     const fetchRooms = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/rooms');
+        const response = await axios.get('http://localhost:5025/api/rooms');
         
         // Filter out rooms that the Admin chose to hide, or that are completely Full
         const availableRooms = response.data.filter(
