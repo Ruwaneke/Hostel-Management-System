@@ -18,7 +18,7 @@ const laundrySchema = new mongoose.Schema({
     required: true 
   },
   
-  packageType: { type: String, enum: ['One Day Service', 'Two Day Service', 'Weekly Service'], required: true },
+  packageType: { type: String,enum: ['Standard', 'One Day Service', 'Two Day Service', 'Weekly Service'], required: true },
   pieces: { type: Number, required: true, min: 1 },
   pricePerPiece: { type: Number, required: true },
   totalAmount: { type: Number, required: true },
