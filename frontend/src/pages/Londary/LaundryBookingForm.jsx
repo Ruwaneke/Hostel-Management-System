@@ -4,13 +4,13 @@ import axios from 'axios';
 export default function LaundryBookingForm({ user, roomNumber, settings }) {
   const [formData, setFormData] = useState({
     phone: '',
-    serviceType: 'Wash and Iron', 
-    packageType: 'One Day Service',
+    serviceType: 'Wash and Iron',
+    packageType: 'Standard',
     pieces: 1,
     specialInstructions: '',
     image: null,
   });
-  
+
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,7 +26,6 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
     }
   };
 
-  // Advanced Price Calculation based on the new Engine
   const calculateBasePrice = () => {
     if (!settings) return 0;
     if (formData.serviceType === 'Wash Only') return settings.washOnlyPrice || 0;
@@ -40,8 +39,6 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
   const calculateExtraPremium = () => {
     if (!settings) return 0;
     if (formData.packageType === 'One Day Service') return settings.oneDayExtra || 0;
-    if (formData.packageType === 'Two Day Service') return settings.twoDayExtra || 0;
-    if (formData.packageType === 'Weekly Service') return settings.weeklyExtra || 0;
     return 0;
   };
 
@@ -58,13 +55,12 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
       return;
     }
     if (!/^\d{10}$/.test(formData.phone)) {
-    alert("Please enter a valid 10-digit phone number!");
-    return;
-  }
-    
-  
+      alert("Please enter a valid 10-digit phone number!");
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     const submitData = new FormData();
     submitData.append('studentId', user._id);
     submitData.append('studentName', user.name);
@@ -75,16 +71,13 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
     submitData.append('packageType', formData.packageType);
     submitData.append('pieces', formData.pieces);
     submitData.append('specialInstructions', formData.specialInstructions);
-    
-    if (formData.image) {
-      submitData.append('image', formData.image);
-    }
+    if (formData.image) submitData.append('image', formData.image);
 
     try {
       const res = await axios.post('http://localhost:5025/api/laundry/create-checkout', submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      window.location.href = res.data.url; 
+      window.location.href = res.data.url;
     } catch (error) {
       console.error(error);
       alert("Failed to initiate payment. Please try again.");
@@ -93,130 +86,265 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
   };
 
   const serviceOptions = [
-    { name: 'Wash Only', price: settings?.washOnlyPrice },
     { name: 'Wash and Dry', price: settings?.washAndDryPrice },
     { name: 'Iron Only', price: settings?.ironOnlyPrice },
     { name: 'Wash and Iron', price: settings?.washAndIronPrice },
-    { name: 'Dry Clean', price: settings?.dryCleanPrice }
+    { name: 'Dry Clean', price: settings?.dryCleanPrice },
   ];
 
   return (
-    <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-      <h3 className="text-xl font-black text-slate-800 mb-6 border-b border-slate-100 pb-4 ">Laundry Request Form</h3>
-      
-      <form onSubmit={handleSubmit} className="space-y-8">
-        
-        {/* SECTION 1: PERSONAL DETAILS */}
-        <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-2 flex items-center gap-2"><span>👤</span> Student Details</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="min-h-screen bg-brand-platinum/20 relative py-12 px-4 selection:bg-brand-gold/30 selection:text-brand-navy text-brand-black">
+
+      {/* Decorative background */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-brand-platinum/50 to-transparent pointer-events-none" />
+      <div className="absolute -top-20 -right-20 w-96 h-96 bg-brand-gold/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-40 -left-20 w-80 h-80 bg-brand-navy/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative max-w-4xl mx-auto">
+
+        {/* Header */}
+        <div className="text-center mb-10">
+          <h1 className="text-4xl sm:text-5xl font-black text-brand-navy tracking-tight mb-4">
+            Laundry <span className="text-brand-gold drop-shadow-sm">Request</span>
+          </h1>
+          <p className="text-slate-600 text-lg max-w-2xl mx-auto">
+            Book a wash, select your service type, and track your clothes.
+          </p>
+        </div>
+
+        {/* Main Card */}
+        <div className="bg-brand-white rounded-3xl p-8 sm:p-10 border border-brand-platinum/50 shadow-lg shadow-brand-platinum/20 hover:shadow-xl transition-shadow duration-300">
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+
+            {/* Student Details */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Full Name</label>
-              <input type="text" value={user?.name || ''} readOnly className="w-full border border-slate-200 p-3 rounded-xl bg-slate-100 text-slate-500 font-bold cursor-not-allowed" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Room Number</label>
-              <input type="text" value={roomNumber} readOnly className="w-full border border-slate-200 p-3 rounded-xl bg-slate-100 text-slate-500 font-black cursor-not-allowed" />
-            </div>
-            <div className="md:col-span-2">
-            <label className="block text-[10px] font-bold text-brand-navy uppercase tracking-wider mb-1">Phone Number <span className="text-rose-500">*</span></label>
-            <input type="number"name="phone" value={formData.phone} onChange={handleInputChange} required placeholder="e.g. 0771234567"onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-                    className="w-full border-2 border-slate-200 p-3 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-brand-navy transition-colors bg-white" />
+              <label className="block text-brand-navy font-black text-lg mb-4 tracking-tight">
+                Student Details
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-slate-500 text-sm mb-2 font-medium">Full Name</p>
+                  <input
+                    type="text"
+                    value={user?.name || ''}
+                    readOnly
+                    className="w-full px-5 py-4 bg-brand-platinum/10 border border-brand-platinum/30 rounded-2xl text-slate-500 font-bold cursor-not-allowed shadow-sm"
+                  />
                 </div>
+                <div>
+                  <p className="text-slate-500 text-sm mb-2 font-medium">Room Number</p>
+                  <input
+                    type="text"
+                    value={roomNumber}
+                    readOnly
+                    className="w-full px-5 py-4 bg-brand-platinum/10 border border-brand-platinum/30 rounded-2xl text-slate-500 font-bold cursor-not-allowed shadow-sm"
+                  />
+                </div>
+                <div>
+                  <p className="text-slate-500 text-sm mb-2 font-medium">Phone Number <span className="text-rose-500">*</span></p>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: val });
+                    }}
+                    required
+                    placeholder="e.g. 0771234567"
+                    className="w-full border-2 border-slate-200 p-3 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-brand-navy transition-colors bg-white"
+                  />
                 </div>
               </div>
+            </div>
 
-        {/* SECTION 2: SERVICE TYPE */}
-        <div>
-          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"> Select Service Type (Base Price)</h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {serviceOptions.map((opt) => (
-              <label key={opt.name} className={`flex flex-col p-3 rounded-xl border-2 cursor-pointer transition-colors text-center ${formData.serviceType === opt.name ? 'border-brand-navy bg-brand-navy text-white shadow-md' : 'border-slate-200 text-slate-600 hover:border-brand-navy/50'}`}>
-                <input type="radio" name="serviceType" value={opt.name} checked={formData.serviceType === opt.name} onChange={handleInputChange} className="hidden" />
-                <span className="font-bold text-sm mb-1">{opt.name}</span>
-                <span className={`text-[10px] font-black uppercase tracking-wider ${formData.serviceType === opt.name ? 'text-brand-gold' : 'text-brand-navy'}`}>Rs. {opt.price || 0}/pc</span>
+            {/* Service Type */}
+            <div>
+              <label className="block text-brand-navy font-black text-lg mb-4 tracking-tight">
+                What service do you need? <span className="text-rose-500">*</span>
               </label>
-            ))}
-          </div>
-        </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {serviceOptions.map((opt) => (
+                  <button
+                    key={opt.name}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, serviceType: opt.name })}
+                    className={`p-4 rounded-2xl transition-all duration-300 border flex items-center gap-3 ${
+                      formData.serviceType === opt.name
+                        ? 'bg-brand-navy border-brand-navy text-brand-gold shadow-md ring-1 ring-brand-navy'
+                        : 'bg-brand-white/60 border-brand-platinum/50 text-slate-600 hover:bg-brand-white hover:border-brand-platinum hover:shadow-sm'
+                    }`}
+                  >
+                    <div className="text-left">
+                      <div className="font-bold text-sm">{opt.name}</div>
+                      <div className={`text-[10px] font-black uppercase tracking-wider ${formData.serviceType === opt.name ? 'text-brand-gold' : 'text-brand-navy'}`}>
+                        Rs. {opt.price || 0}/pc
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-        {/* SECTION 3: PACKAGE SPEED */}
-        <div>
-          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"> Turnaround Speed (Premium Extra)</h4>
-          <div className="space-y-3">
-            {[
-              { name: 'One Day Service', price: settings?.oneDayExtra || 0, desc: "Fast 24-hour turnaround" },
-              { name: 'Two Day Service', price: settings?.twoDayExtra || 0, desc: "Standard 48-hour turnaround" },
-              { name: 'Weekly Service',  price: settings?.weeklyExtra || 0, desc: "Standard batch, no rush" }
-            ].map((pkg) => (
-              <label key={pkg.name} className={`flex items-center justify-between p-4 border-2 rounded-2xl cursor-pointer transition-all ${formData.packageType === pkg.name ? 'border-amber-500 bg-amber-50 shadow-sm' : 'border-slate-100 hover:border-slate-200 bg-white'}`}>
-                <div className="flex items-center gap-3">
-                  <input type="radio" name="packageType" value={pkg.name} checked={formData.packageType === pkg.name} onChange={handleInputChange} className="w-5 h-5 text-amber-500 focus:ring-amber-500" />
-                  <div>
-                    <div className="font-bold text-slate-800">{pkg.name}</div>
-                    <div className="text-xs text-slate-500">{pkg.desc}</div>
-                  </div>
+            {/* Turnaround Speed */}
+            <div>
+              <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3">How fast do you need it?</h4>
+              <label className={`flex items-center gap-4 p-4 border-2 rounded-2xl cursor-pointer transition-all ${formData.packageType === 'One Day Service' ? 'border-amber-500 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+                <input
+                  type="checkbox"
+                  checked={formData.packageType === 'One Day Service'}
+                  onChange={(e) => {
+                    const newPackage = e.target.checked ? 'One Day Service' : 'Standard';
+                    setFormData({ ...formData, packageType: newPackage, pieces: 1 });
+                  }}
+                  className="w-5 h-5 accent-amber-500"
+                />
+                <div className="flex-1">
+                  <div className="font-bold text-slate-800">One Day Service</div>
+                  <div className="text-xs text-slate-500">Fast 24-hour turnaround</div>
                 </div>
-                <div className="font-black text-amber-600 bg-amber-100/50 px-3 py-1 rounded-lg">+{pkg.price} <span className="text-[10px] font-bold uppercase">Rs/pc</span></div>
+                <div className="font-black text-amber-600 bg-amber-100/50 px-3 py-1 rounded-lg">
+                  +{settings?.oneDayExtra || 0} <span className="text-[10px] font-bold uppercase">Rs/pc</span>
+                </div>
               </label>
-            ))}
-          </div>
+            </div>
+
+            {/* Number of Pieces */}
+            <div>
+              <label className="block text-brand-navy font-bold text-lg mb-2">
+                Number of Pieces <span className="text-rose-500">*</span>
+              </label>
+              <p className="text-slate-500 text-sm mb-3 font-medium">
+                How many clothing items are you sending?{' '}
+                <span className="font-bold text-brand-navy">
+                  (Max: {formData.packageType === 'One Day Service' ? 2 : 8})
+                </span>
+              </p>
+              <input
+                type="number"
+                name="pieces"
+                min="1"
+                max={formData.packageType === 'One Day Service' ? 2 : 8}
+                value={formData.pieces}
+                onChange={(e) => {
+                  const max = formData.packageType === 'One Day Service' ? 2 : 8;
+                  const val = Math.min(Math.max(1, parseInt(e.target.value) || 1), max);
+                  setFormData({ ...formData, pieces: val });
+                }}
+                required
+                className="w-full px-5 py-4 bg-brand-platinum/10 border border-brand-platinum/30 rounded-2xl font-black text-2xl text-center text-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-gold transition-all shadow-sm"
+              />
+            </div>
+
+            {/* Special Instructions */}
+            <div>
+              <label className="block text-brand-navy font-bold text-lg mb-2">
+                Special Instructions <span className="text-slate-400 text-sm font-normal ml-2">(Optional)</span>
+              </label>
+              <p className="text-slate-500 text-sm mb-3 font-medium">Any specific care requirements or notes for our team.</p>
+              <textarea
+                name="specialInstructions"
+                value={formData.specialInstructions}
+                onChange={handleInputChange}
+                placeholder="Please use gentle detergent, mind the red stain..."
+                rows="3"
+                className="w-full px-5 py-4 bg-brand-platinum/10 border border-brand-platinum/30 rounded-2xl text-brand-black placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-gold transition-all resize-none shadow-sm"
+              />
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label className="block text-brand-navy font-bold text-lg mb-2">
+                Attach Photo <span className="text-slate-400 text-sm font-normal ml-2">(Optional)</span>
+              </label>
+              <p className="text-slate-500 text-sm mb-3 font-medium">Upload a photo of your clothes so we can handle them with care.</p>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="w-full px-5 py-4 bg-brand-platinum/10 border border-brand-platinum/30 rounded-2xl text-brand-black file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-brand-navy file:text-brand-gold hover:file:bg-brand-navy/90 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-gold cursor-pointer"
+              />
+              {imagePreview && (
+                <div className="mt-4 relative inline-block">
+                  <img src={imagePreview} alt="Preview" className="h-32 rounded-xl border border-slate-200 object-cover shadow-sm" />
+                  <button
+                    type="button"
+                    onClick={() => { setFormData({ ...formData, image: null }); setImagePreview(null); }}
+                    className="absolute -top-2 -right-2 bg-rose-500 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-md hover:bg-rose-600 transition"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Checkout Summary */}
+            <div className="bg-gradient-to-br from-brand-navy to-blue-900 p-6 rounded-2xl shadow-lg text-white border border-blue-800">
+              <h4 className="font-black text-brand-gold uppercase tracking-wider text-sm mb-4">Order Summary</h4>
+              <div className="space-y-3 mb-4 pb-4 border-b border-white/10">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-blue-200">Base Price ({formData.pieces} pcs × Rs.{calculateBasePrice()})</span>
+                  <span className="font-bold">Rs. {calculateBasePrice() * formData.pieces}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-blue-200">Speed Premium ({formData.pieces} pcs × Rs.{calculateExtraPremium()})</span>
+                  <span className="font-bold">Rs. {calculateExtraPremium() * formData.pieces}</span>
+                </div>
+                <div className="flex justify-between items-center text-blue-300">
+                  <span className="text-sm font-medium">Flat Pickup & Delivery Fee</span>
+                  <span className="font-bold">Rs. {settings?.deliveryCharge || 0}</span>
+                </div>
+              </div>
+              <div className="flex justify-between items-end mb-6">
+                <span className="font-bold text-sm uppercase tracking-wider text-blue-100">Total Due</span>
+                <span className="text-4xl font-black text-brand-gold drop-shadow-md">Rs. {calculateTotal().toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-2 border-t border-brand-platinum/30">
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                className="flex-1 px-6 py-4 bg-brand-white text-brand-navy font-bold rounded-2xl border border-brand-platinum/50 hover:bg-brand-platinum/20 transition-all focus:outline-none focus:ring-2 focus:ring-brand-platinum shadow-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || roomNumber === "Not Assigned"}
+                className="flex-[2] bg-brand-gold hover:bg-[#e5920f] disabled:bg-brand-gold/50 text-brand-black font-black py-4 px-6 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center gap-3"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-brand-black/40 border-t-brand-black rounded-full animate-spin" />
+                    <span>Processing Transaction...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xl">💳</span>
+                    <span>Pay Securely with Stripe</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+          </form>
         </div>
 
-        {/* SECTION 4: QUANTITY, INSTRUCTIONS & IMAGE */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Info Box */}
+        <div className="mt-8 mb-12 bg-brand-navy border border-brand-white/10 rounded-3xl p-6 shadow-xl flex items-start gap-4">
+          <div className="bg-brand-gold/20 p-2 rounded-full text-brand-gold text-lg">ℹ️</div>
           <div>
-            <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2"> Number of Pieces</h4>
-            <input type="number" name="pieces" min="1" value={formData.pieces} onChange={handleInputChange} required
-              className="w-full border-2 border-slate-200 p-4 rounded-xl font-black text-2xl text-center text-brand-navy focus:outline-none focus:border-brand-navy transition-colors bg-white" />
-          </div>
-
-          <div>
-            <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-1 flex items-center gap-2"><span>📸</span> Attach Photo <span className="text-[10px] font-bold uppercase text-slate-400">(Optional)</span></h4>
-            <input type="file" accept="image/*" onChange={handleImageChange} className="w-full mt-2 text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" />
+            <h4 className="text-brand-gold font-bold mb-1">What happens next?</h4>
+            <p className="text-brand-platinum/80 text-sm leading-relaxed font-medium">
+              After payment, your laundry request is confirmed and our team will collect your clothes. You can track your order status in the My Orders tab.
+            </p>
           </div>
         </div>
 
-        <div>
-          <h4 className="text-xs font-black text-brand-navy uppercase tracking-wider mb-2 flex items-center gap-2">Special Instructions <span className="text-[10px] font-bold uppercase text-slate-400">(Optional)</span></h4>
-          <textarea name="specialInstructions" value={formData.specialInstructions} onChange={handleInputChange} placeholder="Please use gentle detergent, mind the red stain..."
-            className="w-full border-2 border-slate-200 p-3 rounded-xl font-medium text-sm focus:outline-none focus:border-brand-navy transition-colors resize-none h-20 bg-white" />
-        </div>
-        
-        {imagePreview && (
-          <div className="h-40 w-full rounded-2xl overflow-hidden border-2 border-slate-200 shadow-inner">
-            <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-          </div>
-        )}
-
-        {/* Checkout Summary Box */}
-        <div className="bg-gradient-to-br from-brand-navy to-blue-900 p-6 rounded-2xl shadow-lg text-white mt-8 border border-blue-800">
-          
-          <div className="space-y-3 mb-4 pb-4 border-b border-white/10">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-blue-200">Base Price ({formData.pieces} pcs × Rs.{calculateBasePrice()})</span>
-              <span className="font-bold">Rs. {calculateBasePrice() * formData.pieces}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-blue-200">Speed Premium ({formData.pieces} pcs × Rs.{calculateExtraPremium()})</span>
-              <span className="font-bold">Rs. {calculateExtraPremium() * formData.pieces}</span>
-            </div>
-            <div className="flex justify-between items-center text-blue-300">
-              <span className="text-sm font-medium">Flat Pickup & Delivery Fee</span>
-              <span className="font-bold">Rs. {settings?.deliveryCharge || 0}</span>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-end mb-6">
-            <span className="font-bold text-sm uppercase tracking-wider text-blue-100">Total Due</span>
-            <span className="text-4xl font-black text-brand-gold drop-shadow-md">Rs. {calculateTotal().toLocaleString()}</span>
-          </div>
-
-          <button type="submit" disabled={isSubmitting || roomNumber === "Not Assigned"} className="w-full bg-brand-gold hover:bg-[#e5920f] text-brand-black font-black text-lg py-4 rounded-xl transition-all shadow-xl hover:-translate-y-1 flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed">
-            {isSubmitting ? "Processing Transaction..." : <><span>💳</span> Pay Securely with Stripe</>}
-          </button>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }
