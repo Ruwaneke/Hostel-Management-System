@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-
+import { mountSwagger } from './swagger/swagger-setup.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -59,7 +59,7 @@ app.use('/api/food-items', foodItemRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/chatbot', chatbotRoutes);
-
+mountSwagger(app);
 // ── Error Handling ────────────────────────────────────────────────────────────
 
 // Error handling middleware
