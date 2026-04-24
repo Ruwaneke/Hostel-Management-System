@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: Hostel Management System - Booking 
+  version: 1.0.0
+  description: Swagger documentation for Room Booking, Checkout, and Monthly Rent Payments.
+paths:
+  /api/bookings/create-checkout:
+    post:
+      summary: Create an initial room booking and Stripe checkout session
+      tags: [Bookings & Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCheckoutRequest'
+      responses:
+        '200':
+          description: Stripe checkout session URL generated successfully
+        '400':
+          description: User already has an active booking
+        '404':
+          description: Room not found
+
+  /api/bookings/verify-payment:
+    post:
+      summary: Verify the initial payment and secure the room
+      tags: [Bookings & Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyPaymentRequest'
+      responses:
+        '200':
+          description: Payment verified and invoice created
+
+  /api/bookings/status/{userId}:
+    get:
+      summary: Get the current booking status for a specific user
+      tags: [Bookings & Payments]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The student's User ID
+      responses:
+        '200':
+          description: Returns booking status and booking details if active
+
+  /api/bookings/room/{roomId}:
+    get:
+      summary: Get all occupants for a specific room (Admin Panel)
+      tags: [Bookings & Payments]
+      parameters:
+        - in: path
+          name: roomId
+          required: true
+          schema:
+            type: string
+          description: The Room ID
+      responses:
+        '200':
+          description: Returns a list of active bookings and invoices for the room
+
+  /api/bookings/monthly-checkout:
+    post:
+      summary: Create a Stripe checkout session for monthly rent
+      tags: [Bookings & Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookingId]
+              properties:
+                bookingId:
+                  type: string
+                  example: "60d0fe4f5311236168a109ca"
+      responses:
+        '200':
+          description: Stripe checkout session URL generated for monthly rent
+
+  /api/bookings/verify-monthly:
+    post:
+      summary: Verify a monthly rent payment
+      tags: [Bookings & Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyPaymentRequest'
+      responses:
+        '200':
+          description: Monthly rent verified and next payment date advanced
+
+components:
+  schemas:
+    CreateCheckoutRequest:
+      type: object
+      required: [roomId, userId, name, email, nicNumber, emergencyContactName, emergencyContactPhone]
+      properties:
+        roomId:
+          type: string
+          example: "60d0fe4f5311236168a109ca"
+        userId:
+          type: string
+          example: "60d0fe4f5311236168a109cb"
+        name:
+          type: string
+          example: "Kamal Perera"
+        email:
+          type: string
+          example: "kamal@example.com"
+        nicNumber:
+          type: string
+          example: "199912345678"
+        emergencyContactName:
+          type: string
+          example: "Nimal Perera"
+        emergencyContactPhone:
+          type: string
+          example: "0712345678"
+        expectedMoveInDate:
+          type: string
+          format: date
+          example: "2026-05-01"
+        specialRequests:
+          type: string
+          example: "Lower bunk bed preferred."
+
+    VerifyPaymentRequest:
+      type: object
+      required: [bookingId, stripeSessionId]
+      properties:
+        bookingId:
+          type: string
+          example: "60d0fe4f5311236168a109ca"
+        stripeSessionId:
+          type: string
+          example: "cs_test_a1b2c3d4e5f6g7h8i9j0"
