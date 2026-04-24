@@ -23,6 +23,8 @@ export default function AdminLaundry() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null); 
   const [adminNoteInput, setAdminNoteInput] = useState("");
+  const [filterName, setFilterName] = useState('');
+  const [filterService, setFilterService] = useState('');
 
   const [settings, setSettings] = useState({
     washOnlyPrice: 0, washAndDryPrice: 0, ironOnlyPrice: 0, washAndIronPrice: 0, dryCleanPrice: 0,
@@ -52,8 +54,14 @@ export default function AdminLaundry() {
   };
 
   const handleSettingsChange = (e) => {
-    setSettings({ ...settings, [e.target.name]: Number(e.target.value) });
-  };
+  let value = Number(e.target.value);
+  if (value < 0) value = 0;
+
+  setSettings({
+    ...settings,
+    [e.target.name]: value
+  });
+};
 
   const saveSettings = async (e) => {
     e.preventDefault();
@@ -88,6 +96,12 @@ export default function AdminLaundry() {
     }
   };
 
+  const filteredOrders = orders.filter(order => {
+    const matchName = order.studentName.toLowerCase().includes(filterName.toLowerCase());
+    const matchService = filterService === '' || order.serviceType === filterService;
+    return matchName && matchService;
+  });
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -105,7 +119,7 @@ export default function AdminLaundry() {
       {/* Header & Tabs */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-brand-navy tracking-tight">Laundry Management 👕</h2>
+          <h2 className="text-3xl font-black text-brand-navy tracking-tight">Laundry Management </h2>
           <p className="text-slate-500 font-medium mt-1">Manage student laundry orders and dynamic service pricing.</p>
         </div>
         
@@ -119,11 +133,33 @@ export default function AdminLaundry() {
         </div>
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────── */}
       {/* TAB 1: ACTIVE ORDERS */}
-      {/* ───────────────────────────────────────────────────────────────── */}
       {activeTab === 'orders' && (
         <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+
+          {/* Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-3 p-4 border-b border-slate-100">
+            <input
+              type="text"
+              placeholder="Search by student name..."
+              value={filterName}
+              onChange={(e) => setFilterName(e.target.value)}
+              className="flex-1 border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-navy bg-slate-50"
+            />
+            <select
+              value={filterService}
+              onChange={(e) => setFilterService(e.target.value)}
+              className="border border-slate-200 px-4 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-navy bg-slate-50"
+            >
+              <option value="">All Services</option>
+              <option value="Wash Only">Wash Only</option>
+              <option value="Wash and Dry">Wash and Dry</option>
+              <option value="Iron Only">Iron Only</option>
+              <option value="Wash and Iron">Wash and Iron</option>
+              <option value="Dry Clean">Dry Clean</option>
+            </select>
+          </div>
+
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse min-w-[900px]">
               <thead className="bg-slate-50">
@@ -136,10 +172,10 @@ export default function AdminLaundry() {
                 </tr>
               </thead>
               <tbody>
-                {orders.length === 0 ? (
-                  <tr><td colSpan="5" className="text-center py-12 text-slate-500 font-medium">No paid laundry orders right now.</td></tr>
+                {filteredOrders.length === 0 ? (
+                  <tr><td colSpan="5" className="text-center py-12 text-slate-500 font-medium">No orders match your filters.</td></tr>
                 ) : (
-                  orders.map((order) => (
+                  filteredOrders.map((order) => (
                     <tr key={order._id} className="hover:bg-slate-50 transition-colors border-t border-slate-100">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -162,7 +198,7 @@ export default function AdminLaundry() {
                         <div className="text-xs text-slate-400 mt-0.5">{order.pieces} pcs @ Rs.{order.pricePerPiece}/pc</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-black text-emerald-600">Rs. {order.totalAmount.toLocaleString()}</div>
+                        <div className="text-sm font-bold blacktext-emerald-600">Rs. {order.totalAmount.toLocaleString()}</div>
                       </td>
                       <td className="px-6 py-4">
                         <StatusBadge status={order.status} />
@@ -182,13 +218,11 @@ export default function AdminLaundry() {
         </div>
       )}
 
-      {/* ───────────────────────────────────────────────────────────────── */}
       {/* TAB 2: PRICING SETTINGS */}
-      {/* ───────────────────────────────────────────────────────────────── */}
       {activeTab === 'settings' && (
         <div className="max-w-3xl mx-auto bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 md:p-12">
           <div className="text-center mb-8">
-            <div className="text-5xl mb-4">⚙️</div>
+            <div className="text-5xl mb-4"></div>
             <h3 className="text-2xl font-black text-slate-800">Dynamic Pricing Engine</h3>
             <p className="text-slate-500 text-sm mt-2">Set base prices and speed premiums. Changes apply instantly to new orders.</p>
           </div>
@@ -208,7 +242,7 @@ export default function AdminLaundry() {
                 ].map((item) => (
                   <div key={item.key} className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <span className="font-bold text-slate-800">{item.label}</span>
-                    <input type="number" name={item.key} value={settings[item.key] || 0} onChange={handleSettingsChange} required
+                    <input type="number" name={item.key} value={settings[item.key] || 0} min="0"  onChange={handleSettingsChange} required
                       className="w-24 text-right px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-brand-navy font-bold" />
                   </div>
                 ))}
@@ -222,18 +256,8 @@ export default function AdminLaundry() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center justify-between bg-amber-50 p-4 rounded-2xl border border-amber-100">
                   <span className="font-bold text-amber-900">One Day Service</span>
-                  <input type="number" name="oneDayExtra" value={settings.oneDayExtra || 0} onChange={handleSettingsChange} required
+                  <input type="number" name="oneDayExtra" value={settings.oneDayExtra || 0} min="0"  onChange={handleSettingsChange} required
                     className="w-24 text-right px-3 py-2 rounded-xl border border-amber-200 focus:outline-none focus:border-amber-500 font-bold bg-white" />
-                </div>
-                <div className="flex items-center justify-between bg-amber-50 p-4 rounded-2xl border border-amber-100">
-                  <span className="font-bold text-amber-900">Two Day Service</span>
-                  <input type="number" name="twoDayExtra" value={settings.twoDayExtra || 0} onChange={handleSettingsChange} required
-                    className="w-24 text-right px-3 py-2 rounded-xl border border-amber-200 focus:outline-none focus:border-amber-500 font-bold bg-white" />
-                </div>
-                <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <span className="font-bold text-slate-700">Weekly Service</span>
-                  <input type="number" name="weeklyExtra" value={settings.weeklyExtra || 0} onChange={handleSettingsChange} required
-                    className="w-24 text-right px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-brand-navy font-bold" />
                 </div>
               </div>
             </div>
@@ -246,7 +270,7 @@ export default function AdminLaundry() {
                   <span className="font-bold text-blue-900 block">Flat Delivery & Pickup Charge</span>
                   <span className="text-xs text-blue-700">Applied once per total order, not per piece.</span>
                 </div>
-                <input type="number" name="deliveryCharge" value={settings.deliveryCharge || 0} onChange={handleSettingsChange} required
+                <input type="number" name="deliveryCharge" value={settings.deliveryCharge || 0} min="0"  onChange={handleSettingsChange} required
                   className="w-28 text-right px-4 py-2 rounded-xl border border-blue-200 focus:outline-none focus:border-blue-500 font-black text-lg bg-white" />
               </div>
             </div>
@@ -259,9 +283,7 @@ export default function AdminLaundry() {
         </div>
       )}
 
-      {/* ───────────────────────────────────────────────────────────────── */}
-      {/* 3. MODAL UPDATED */}
-      {/* ───────────────────────────────────────────────────────────────── */}
+      {/* MODAL */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-center items-center p-4 md:p-8">
           <div className="bg-white rounded-[2rem] shadow-2xl max-w-4xl w-full flex flex-col max-h-full animate-in zoom-in-95 duration-200 overflow-hidden">

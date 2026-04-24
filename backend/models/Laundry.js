@@ -4,7 +4,11 @@ const laundrySchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   studentName: { type: String, required: true, trim: true },
   studentEmail: { type: String, required: true, trim: true },
-  studentPhone: { type: String, required: true },
+   studentPhone: { 
+    type: String, 
+    required: [true, 'Phone number is required'],
+    match: [/^07[0-9]{8}$/, 'Phone must be a valid Sri Lankan number (07XXXXXXXX)']
+  },
   roomNumber: { type: String, required: true },
 
   // NEW: Service Type
@@ -14,7 +18,7 @@ const laundrySchema = new mongoose.Schema({
     required: true 
   },
   
-  packageType: { type: String, enum: ['One Day Service', 'Two Day Service', 'Weekly Service'], required: true },
+  packageType: { type: String,enum: ['Standard', 'One Day Service', 'Two Day Service', 'Weekly Service'], required: true },
   pieces: { type: Number, required: true, min: 1 },
   pricePerPiece: { type: Number, required: true },
   totalAmount: { type: Number, required: true },

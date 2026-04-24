@@ -8,7 +8,8 @@ import {
   verifyLaundryPayment, 
   getStudentLaundryOrders, 
   getAllLaundryOrders, 
-  updateLaundryStatus 
+  updateLaundryStatus,
+  deleteLaundryOrder  
 } from '../controllers/laundryController.js';
 
 const router = express.Router();
@@ -42,5 +43,6 @@ router.get('/all', getAllLaundryOrders);
 
 // Admin Update Status/Notes
 router.put('/:id/status', updateLaundryStatus);
+router.delete('/:id', deleteLaundryOrder);
 
 export default router;

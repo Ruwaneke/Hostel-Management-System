@@ -61,8 +61,7 @@ export const createLaundryCheckout = async (req, res) => {
     // 2. Calculate Premium from Package Speed
     let extraPrice = 0;
     if (packageType === 'One Day Service') extraPrice = settings.oneDayExtra;
-    else if (packageType === 'Two Day Service') extraPrice = settings.twoDayExtra;
-    else if (packageType === 'Weekly Service') extraPrice = settings.weeklyExtra;
+    else if (packageType === 'Standard') extraPrice = 0;
     else return res.status(400).json({ message: "Invalid package type" });
 
     // 3. Final Calculation
@@ -148,6 +147,19 @@ export const updateLaundryStatus = async (req, res) => {
     const { status, adminNote } = req.body;
     const order = await Laundry.findByIdAndUpdate(req.params.id, { status, adminNote }, { new: true });
     res.status(200).json({ message: "Order updated successfully", order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteLaundryOrder = async (req, res) => {
+  try {
+    const order = await Laundry.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+    if (order.status !== 'Delivered') return res.status(400).json({ message: 'Only delivered orders can be deleted' });
+
+    await Laundry.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Order deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
