@@ -302,48 +302,38 @@ export default function LaundryBookingForm({ user, roomNumber, settings }) {
               </div>
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-6 mt-2 border-t border-brand-platinum/30">
+   <div className="flex justify-center items-center gap-4 pt-6 mt-2 border-t border-brand-platinum/30">
+
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                className="flex-1 px-6 py-4 bg-brand-white text-brand-navy font-bold rounded-2xl border border-brand-platinum/50 hover:bg-brand-platinum/20 transition-all focus:outline-none focus:ring-2 focus:ring-brand-platinum shadow-sm"
+                className="w-48 px-6 py-4 bg-brand-white text-brand-navy font-bold rounded-2xl border border-brand-platinum/50 hover:bg-brand-platinum/20 transition-all"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
                 disabled={isSubmitting || roomNumber === "Not Assigned"}
-                className="flex-[2] bg-brand-gold hover:bg-[#e5920f] disabled:bg-brand-gold/50 text-brand-black font-black py-4 px-6 rounded-2xl transition-all duration-300 shadow-md hover:shadow-lg disabled:shadow-none flex items-center justify-center gap-3"
+                className="w-48 bg-brand-gold hover:bg-[#e5920f] disabled:bg-brand-gold/50 text-brand-black font-black py-4 px-6 rounded-2xl transition-all flex items-center justify-center gap-3"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-brand-black/40 border-t-brand-black rounded-full animate-spin" />
-                    <span>Processing Transaction...</span>
+                    <div className="w-5 h-5 border-2 border-black/40 border-t-black rounded-full animate-spin" />
+                    <span>Processing...</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-xl">💳</span>
-                    <span>Pay Securely with Stripe</span>
+                    <span>💳</span>
+                    <span>Pay Securely</span>
                   </>
                 )}
               </button>
+
             </div>
 
           </form>
         </div>
-
-        {/* Info Box */}
-        <div className="mt-8 mb-12 bg-brand-navy border border-brand-white/10 rounded-3xl p-6 shadow-xl flex items-start gap-4">
-          <div className="bg-brand-gold/20 p-2 rounded-full text-brand-gold text-lg">ℹ️</div>
-          <div>
-            <h4 className="text-brand-gold font-bold mb-1">What happens next?</h4>
-            <p className="text-brand-platinum/80 text-sm leading-relaxed font-medium">
-              After payment, your laundry request is confirmed and our team will collect your clothes. You can track your order status in the My Orders tab.
-            </p>
-          </div>
-        </div>
-
       </div>
     </div>
   );
