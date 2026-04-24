@@ -1,0 +1,354 @@
+openapi: 3.0.3
+info:
+  title: Hostel Management System - Maintenance and Feedback API
+  version: 1.0.0
+  description: |
+    Swagger documentation for the Maintenance Management and Feedback Management modules.
+    This is focused only on the assignment scope requested by the student.
+servers:
+  - url: http://localhost:5025
+    description: Local backend server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ComplaintCreateRequest:
+      type: object
+      required: [category, description, priority]
+      properties:
+        title:
+          type: string
+          example: Broken fan in room
+        description:
+          type: string
+          example: Ceiling fan is not working properly
+        category:
+          type: string
+          enum: [Electrical, Plumbing, Furniture, Cleanliness, Discipline / Noise, Other]
+        priority:
+          type: string
+          enum: [Low, Medium, High]
+        image:
+          type: string
+          format: binary
+    ComplaintAssignRequest:
+      type: object
+      required: [staffId, staffName]
+      properties:
+        staffId:
+          type: string
+          example: STF001
+        staffName:
+          type: string
+          example: Maintenance Officer
+        expectedCompletionDate:
+          type: string
+          format: date-time
+    ComplaintProgressRequest:
+      type: object
+      properties:
+        note:
+          type: string
+          example: Technician started inspection
+    ComplaintCompleteRequest:
+      type: object
+      required: [workDescription]
+      properties:
+        workDescription:
+          type: string
+          example: Replaced fan capacitor and tested power supply
+        partsUsed:
+          type: string
+          example: Capacitor
+        cost:
+          type: number
+          example: 1500
+    ComplaintFeedbackRequest:
+      type: object
+      required: [rating]
+      properties:
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        comment:
+          type: string
+          example: Issue was solved quickly and professionally
+    FeedbackCreateRequest:
+      type: object
+      required: [category, title, description, rating]
+      properties:
+        category:
+          type: string
+          enum: [Food & Mess, Room Facilities, Cleanliness, Security, General, Other]
+        title:
+          type: string
+          example: Helpful hostel support
+        description:
+          type: string
+          example: The support team responds quickly to issues
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 4
+    FeedbackUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [Pending, Reviewed, Action Taken]
+        adminResponse:
+          type: string
+          example: Thank you. We will improve this area.
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Operation completed successfully.
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Health check
+      tags: [System]
+      responses:
+        '200':
+          description: Server is healthy
+  /api/complaints:
+    post:
+      summary: Submit maintenance complaint
+      tags: [Maintenance]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ComplaintCreateRequest'
+      responses:
+        '201':
+          description: Complaint created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /api/complaints/my-complaints:
+    get:
+      summary: Get logged-in student's complaints
+      tags: [Maintenance]
+      responses:
+        '200':
+          description: Complaint list returned
+  /api/complaints/admin/all:
+    get:
+      summary: Get all complaints for admin or staff
+      tags: [Maintenance]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: priority
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: hostelBlock
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: slaBreached
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Complaints returned
+  /api/complaints/{complaintId}/assign:
+    put:
+      summary: Assign complaint to staff
+      tags: [Maintenance]
+      parameters:
+        - in: path
+          name: complaintId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplaintAssignRequest'
+      responses:
+        '200':
+          description: Complaint assigned
+  /api/complaints/{complaintId}/progress:
+    put:
+      summary: Update complaint to in progress
+      tags: [Maintenance]
+      parameters:
+        - in: path
+          name: complaintId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplaintProgressRequest'
+      responses:
+        '200':
+          description: Complaint progress updated
+  /api/complaints/{complaintId}/complete:
+    put:
+      summary: Complete maintenance complaint
+      tags: [Maintenance]
+      parameters:
+        - in: path
+          name: complaintId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplaintCompleteRequest'
+      responses:
+        '200':
+          description: Complaint completed
+  /api/complaints/{complaintId}/feedback:
+    post:
+      summary: Submit feedback for completed complaint
+      tags: [Maintenance]
+      parameters:
+        - in: path
+          name: complaintId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplaintFeedbackRequest'
+      responses:
+        '200':
+          description: Complaint closed after feedback
+  /api/complaints/admin/reports:
+    get:
+      summary: Get maintenance reports and SLA analytics
+      tags: [Maintenance]
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: hostelBlock
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Report data returned
+  /api/feedback:
+    post:
+      summary: Submit general hostel feedback
+      tags: [Feedback]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackCreateRequest'
+      responses:
+        '201':
+          description: Feedback submitted
+    get:
+      summary: Get all feedback for admin or staff
+      tags: [Feedback]
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: rating
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Feedback list returned with stats
+  /api/feedback/my-feedback:
+    get:
+      summary: Get logged-in student feedback history
+      tags: [Feedback]
+      responses:
+        '200':
+          description: Student feedback history returned
+  /api/feedback/{id}:
+    put:
+      summary: Update feedback review status
+      tags: [Feedback]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackUpdateRequest'
+      responses:
+        '200':
+          description: Feedback updated
+    delete:
+      summary: Delete feedback record
+      tags: [Feedback]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback deleted
